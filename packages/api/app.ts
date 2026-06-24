@@ -3,6 +3,10 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import swaggerUi from "swagger-ui-express";
+import yaml from "js-yaml";
+import fs from "fs";
+import path from "path";
 import { errorHandler } from "./src/middleware/error-handler";
 import { rateLimiter } from "./src/middleware/rate-limiter";
 import { router } from "./src/routes";
@@ -35,6 +39,12 @@ app.use("/api/", rateLimiter);
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use("/api", router);
+
+// ─── OpenAPI / Swagger UI ─────────────────────────────────────────────────────
+const openApiPath = path.join(__dirname, "openapi.yaml");
+const openApiSpec = yaml.load(fs.readFileSync(openApiPath, "utf8")) as object;
+app.get("/api/openapi.yaml", (_req, res) => res.sendFile(openApiPath));
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {
