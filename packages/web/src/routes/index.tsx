@@ -8,6 +8,10 @@ import { Dashboard } from "../pages/dashboard/Dashboard";
 import { Settings } from "../pages/dashboard/Settings";
 import { NotFound } from "../pages/NotFound";
 
+
+import { MyPlan } from "../pages/my-plan/MyPlan";
+import { DailyLog } from "../pages/daily-log/DailyLog";
+
 export function AppRoutes() {
   return (
     <Routes>
@@ -17,12 +21,14 @@ export function AppRoutes() {
         <Route path="/register" element={<Register />} />
       </Route>
 
-      {/* Protected app routes */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/settings" element={<Settings />} />
+
+          <Route path="/my-plan" element={<MyPlan />} />
+          <Route path="/daily-log" element={<DailyLog />} />
         </Route>
       </Route>
 
