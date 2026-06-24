@@ -5,7 +5,7 @@
   "main": "./server.ts",
   "scripts": {
     "dev": "tsx watch server.ts",
-    "build": "tsc --project tsconfig.build.json",
+    "build": "tsc --project tsconfig.build.json && node -e \"require('fs').copyFileSync('openapi.yaml','dist/openapi.yaml')\"",
     "start": "node dist/server.js",
     "test": "jest --config jest.config.js --coverage --passWithNoTests",
     "lint": "eslint 'src/**/*.ts' 'app.ts' 'server.ts'",
