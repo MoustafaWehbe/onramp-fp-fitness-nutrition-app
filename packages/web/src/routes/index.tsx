@@ -1,32 +1,36 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { AppLayout } from "../layouts/AppLayout";
 import { AuthLayout } from "../layouts/AuthLayout";
+import { GuestLayout } from "../layouts/GuestLayout";
+import { ROUTES } from "../constants/routes";
+import { Landing } from "../pages/landing/Landing";
 import { Login } from "../pages/auth/Login";
 import { Register } from "../pages/auth/Register";
 import { Dashboard } from "../pages/dashboard/Dashboard";
 import { Settings } from "../pages/dashboard/Settings";
+import { BrowsePrograms } from "../pages/programs/BrowsePrograms";
 import { NotFound } from "../pages/NotFound";
 
-export function AppRoutes() {
-  return (
-    <Routes>
-      {/* Public auth routes */}
-      <Route element={<AuthLayout />}>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Route>
+export const AppRoutes = () => (
+  <Routes>
+    <Route element={<GuestLayout />}>
+      <Route path={ROUTES.landing} element={<Landing />} />
+    </Route>
 
-      {/* Protected app routes */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/settings" element={<Settings />} />
-        </Route>
-      </Route>
+    <Route element={<AuthLayout />}>
+      <Route path={ROUTES.login} element={<Login />} />
+      <Route path={ROUTES.register} element={<Register />} />
+    </Route>
 
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
-}
+    <Route element={<ProtectedRoute />}>
+      <Route element={<AppLayout />}>
+        <Route path={ROUTES.dashboard} element={<Dashboard />} />
+        <Route path={ROUTES.settings} element={<Settings />} />
+        <Route path={ROUTES.programs} element={<BrowsePrograms />} />
+      </Route>
+    </Route>
+
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
