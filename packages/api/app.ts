@@ -41,12 +41,9 @@ app.use("/api/", rateLimiter);
 app.use("/api", router);
 
 // ─── OpenAPI / Swagger UI ─────────────────────────────────────────────────────
-const openApiSpec = yaml.load(
-  fs.readFileSync(path.join(__dirname, "openapi.yaml"), "utf8"),
-) as object;
-app.get("/api/openapi.yaml", (_req, res) =>
-  res.sendFile(path.join(__dirname, "openapi.yaml")),
-);
+const openApiPath = path.join(__dirname, "openapi.yaml");
+const openApiSpec = yaml.load(fs.readFileSync(openApiPath, "utf8")) as object;
+app.get("/api/openapi.yaml", (_req, res) => res.sendFile(openApiPath));
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
 // ─── Health check ─────────────────────────────────────────────────────────────
