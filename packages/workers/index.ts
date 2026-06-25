@@ -7,6 +7,14 @@ import { initializeDatabase } from "./src/lib/db";
 async function main(): Promise<void> {
   console.info("Starting workers...");
 
+  if (!process.env.DATABASE_URL && process.env.NODE_ENV !== "production") {
+    console.warn(
+      "DATABASE_URL is not set; workers are paused for local development.",
+    );
+    setInterval(() => undefined, 60_000);
+    return;
+  }
+
   await initializeDatabase();
   const workers = createWorkers();
 
