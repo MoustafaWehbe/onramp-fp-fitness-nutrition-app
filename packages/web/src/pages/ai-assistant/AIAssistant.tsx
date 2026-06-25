@@ -204,7 +204,11 @@ export function AIAssistant() {
               onChange={(event) => setInput(event.target.value)}
               placeholder="Ask about your calories, macros, workouts, or recovery..."
             />
-            <Button type="submit" disabled={!input.trim()}>
+            <Button
+              type="button"
+              disabled={!input.trim()}
+              onClick={() => sendMessage()}
+            >
               <Send className="mr-2 h-4 w-4" />
               Send
             </Button>
