@@ -1,9 +1,9 @@
 openapi: 3.1.0
 
 info:
-  title: Starter Kit API
+  title: FitCoach AI API
   version: 1.0.0
-  description: REST API for the Starter Kit application
+  description: REST API for the FitCoach AI fitness coaching platform
 
 servers:
   - url: /api
@@ -12,6 +12,10 @@ servers:
 tags:
   - name: Auth
     description: Authentication and session management
+  - name: Plan
+    description: User program and weekly plan
+  - name: Daily Log
+    description: Logging meals and workouts each day
 
 # ─── Reusable components ───────────────────────────────────────────────────────
 components:
@@ -116,6 +120,104 @@ components:
               message:
                 type: string
                 example: Invalid email address
+
+    MyPlanResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        title:
+          type: string
+          example: Lose 10kg in 5 Months
+        goal:
+          type: string
+          example: Fat Loss
+        level:
+          type: string
+          example: Intermediate
+        weeks:
+          type: integer
+          example: 20
+        calories_per_day:
+          type: integer
+          example: 1850
+        current_week:
+          type: integer
+          example: 7
+        current_day:
+          type: integer
+          example: 3
+        week_plan:
+          type: object
+          description: Full structured week plan with meals and workouts
+
+    DailyLogResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2025-06-18"
+        meals:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MealLogBody"
+        workout:
+          $ref: "#/components/schemas/WorkoutLogBody"
+
+    MealLogBody:
+      type: object
+      required: [userProgramId, logDate, mealType, status]
+      properties:
+        userProgramId:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        logDate:
+          type: string
+          format: date
+          example: "2025-06-18"
+        mealType:
+          type: string
+          enum: [breakfast, snack, lunch, dinner]
+          example: breakfast
+        status:
+          type: string
+          enum: [followed, modified, skipped]
+          example: followed
+        note:
+          type: string
+          example: Had a chicken sandwich instead
+        actualCalories:
+          type: integer
+          example: 480
+
+    WorkoutLogBody:
+      type: object
+      required: [userProgramId, logDate, status]
+      properties:
+        userProgramId:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        logDate:
+          type: string
+          format: date
+          example: "2025-06-18"
+        status:
+          type: string
+          enum: [completed, modified, skipped]
+          example: completed
+        note:
+          type: string
+          example: Hit a new PR on bench press
+        completedExercises:
+          type: array
+          items:
+            type: string
+          example: ["Barbell Bench Press", "Lat Pulldown"]
 
 # ─── Paths ─────────────────────────────────────────────────────────────────────
 paths:
@@ -262,3 +364,131 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /my-plan:
+    get:
+      tags: [Plan]
+      summary: Get the user's active program and week plan
+      operationId: getMyPlan
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Active program with full week plan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/MyPlanResponse"
+        "404":
+          description: No active program found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /daily-log:
+    get:
+      tags: [Daily Log]
+      summary: Get the log for a specific date
+      operationId: getDailyLog
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2025-06-18"
+      responses:
+        "200":
+          description: The daily log for that date
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/DailyLogResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /daily-log/meal:
+    post:
+      tags: [Daily Log]
+      summary: Save a meal log entry
+      operationId: logMeal
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MealLogBody"
+      responses:
+        "200":
+          description: Meal log saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+
+  /daily-log/workout:
+    post:
+      tags: [Daily Log]
+      summary: Save a workout log entry
+      operationId: logWorkout
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkoutLogBody"
+      responses:
+        "200":
+          description: Workout log saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
