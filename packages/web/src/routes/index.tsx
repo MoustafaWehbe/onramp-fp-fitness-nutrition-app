@@ -10,6 +10,10 @@ import { Progress } from "../pages/progress/Progress";
 import { AIAssistant } from "../pages/ai-assistant/AIAssistant";
 import { NotFound } from "../pages/NotFound";
 
+
+import { MyPlan } from "../pages/my-plan/MyPlan";
+import { DailyLog } from "../pages/daily-log/DailyLog";
+
 export function AppRoutes() {
   return (
     <Routes>
@@ -19,7 +23,6 @@ export function AppRoutes() {
         <Route path="/register" element={<Register />} />
       </Route>
 
-      {/* Protected app routes */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -27,6 +30,9 @@ export function AppRoutes() {
           <Route path="/progress" element={<Progress />} />
           <Route path="/ai-assistant" element={<AIAssistant />} />
           <Route path="/settings" element={<Settings />} />
+
+          <Route path="/my-plan" element={<MyPlan />} />
+          <Route path="/daily-log" element={<DailyLog />} />
         </Route>
       </Route>
 
