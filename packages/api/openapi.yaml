@@ -21,6 +21,11 @@ components:
       in: cookie
       name: accessToken
       description: HttpOnly access token cookie set on login
+    refreshCookieAuth:
+      type: apiKey
+      in: cookie
+      name: refreshToken
+      description: HttpOnly refresh token cookie set on login, used to mint new access tokens
 
   schemas:
     RegisterBody:
@@ -57,6 +62,7 @@ components:
 
     User:
       type: object
+      required: [id, email, name, role, createdAt, updatedAt]
       properties:
         id:
           type: string
@@ -84,6 +90,7 @@ components:
 
     ErrorResponse:
       type: object
+      required: [error]
       properties:
         error:
           type: string
@@ -91,9 +98,11 @@ components:
 
     MessageResponse:
       type: object
+      required: [data]
       properties:
         data:
           type: object
+          required: [message]
           properties:
             message:
               type: string
@@ -204,6 +213,8 @@ paths:
       summary: Refresh the access token
       operationId: refreshToken
       description: Reads the `refreshToken` cookie and issues new auth cookies.
+      security:
+        - refreshCookieAuth: []
       responses:
         "200":
           description: Tokens refreshed

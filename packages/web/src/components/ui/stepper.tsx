@@ -13,7 +13,7 @@ export const Stepper = ({ steps, current }: StepperProps) => (
       const active = i === current;
       return (
         <li
-          key={label}
+          key={`${i}-${label}`}
           className={cn(
             "flex items-center",
             i < steps.length - 1 && "flex-1",

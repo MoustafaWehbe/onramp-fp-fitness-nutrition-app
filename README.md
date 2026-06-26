@@ -51,15 +51,21 @@ cp .env.example .env
 
 ### 5. Run database migrations
 
+**Initial setup** — apply the existing migrations to set up your database:
+
 ```bash
 cd packages/api
 npx sequelize-cli db:migrate
 npx sequelize-cli db:seed:all   # optional sample data
+```
 
-# create a new migration
+**Creating a new migration** — generate a migration file, edit it to define your
+schema changes, then apply it:
+
+```bash
+cd packages/api
 npx sequelize-cli migration:generate --name create-restaurants
-# then edit the generated file in packages/api/src/migrations/ to define the schema changes
-# then apply the migration
+# edit the generated file in packages/api/src/migrations/ to define the schema changes
 npx sequelize-cli db:migrate
 ```
 

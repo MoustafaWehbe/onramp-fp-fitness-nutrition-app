@@ -10,6 +10,7 @@ import { Register } from "../pages/auth/Register";
 import { Dashboard } from "../pages/dashboard/Dashboard";
 import { Settings } from "../pages/dashboard/Settings";
 import { BrowsePrograms } from "../pages/programs/BrowsePrograms";
+import { ProgramDetail } from "../pages/programs/ProgramDetail";
 import { NotFound } from "../pages/NotFound";
 
 export const AppRoutes = () => (
@@ -28,6 +29,7 @@ export const AppRoutes = () => (
         <Route path={ROUTES.dashboard} element={<Dashboard />} />
         <Route path={ROUTES.settings} element={<Settings />} />
         <Route path={ROUTES.programs} element={<BrowsePrograms />} />
+        <Route path={ROUTES.programDetail()} element={<ProgramDetail />} />
       </Route>
     </Route>
 
