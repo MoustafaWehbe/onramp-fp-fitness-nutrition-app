@@ -23,6 +23,35 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+const demoUser: AuthUser = {
+  id: "00000000-0000-0000-0000-000000000001",
+  email: "admin@example.com",
+  name: "Admin User",
+  role: "admin",
+};
+const demoSessionKey = "fitcoach.demoUser";
+
+function getDemoUser(): AuthUser | null {
+  if (!import.meta.env.DEV) return null;
+
+  try {
+    return window.localStorage.getItem(demoSessionKey) === "true"
+      ? demoUser
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function setDemoUser(enabled: boolean): void {
+  if (!import.meta.env.DEV) return;
+
+  if (enabled) {
+    window.localStorage.setItem(demoSessionKey, "true");
+  } else {
+    window.localStorage.removeItem(demoSessionKey);
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -30,6 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Restore session on mount — access token cookie is sent automatically
   useEffect(() => {
+    const demo = getDemoUser();
+    if (demo) {
+      setUser(demo);
+      setIsLoading(false);
+      return;
+    }
+
     apiClient
       .get<{ data: AuthUser }>("/auth/me")
       .then(({ data }) => setUser(data.data))
@@ -38,10 +74,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function login(email: string, password: string): Promise<void> {
-    const { data } = await apiClient.post<{
-      data: { user: AuthUser };
-    }>("/auth/login", { email, password });
-    setUser(data.data.user);
+    try {
+      const { data } = await apiClient.post<{
+        data: { user: AuthUser };
+      }>("/auth/login", { email, password });
+      setUser(data.data.user);
+      setDemoUser(false);
+    } catch (error) {
+      if (
+        import.meta.env.DEV &&
+        email === demoUser.email &&
+        password === "Admin1234!"
+      ) {
+        setUser(demoUser);
+        setDemoUser(true);
+        return;
+      }
+
+      throw error;
+    }
   }
 
   async function register(
@@ -56,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await apiClient.post("/auth/logout");
     } finally {
+      setDemoUser(false);
       setUser(null);
     }
   }

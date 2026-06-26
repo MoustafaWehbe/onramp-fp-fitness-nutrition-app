@@ -6,6 +6,8 @@ import { Login } from "../pages/auth/Login";
 import { Register } from "../pages/auth/Register";
 import { Dashboard } from "../pages/dashboard/Dashboard";
 import { Settings } from "../pages/dashboard/Settings";
+import { Progress } from "../pages/progress/Progress";
+import { AIAssistant } from "../pages/ai-assistant/AIAssistant";
 import { NotFound } from "../pages/NotFound";
 
 
@@ -25,6 +27,8 @@ export function AppRoutes() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/progress" element={<Progress />} />
+          <Route path="/ai-assistant" element={<AIAssistant />} />
           <Route path="/settings" element={<Settings />} />
 
           <Route path="/my-plan" element={<MyPlan />} />

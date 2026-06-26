@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,7 +26,11 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState<string | null>(null);
+  const from =
+    (location.state as { from?: { pathname?: string } } | null)?.from
+      ?.pathname ?? "/dashboard";
 
   const {
     register,
@@ -40,7 +44,7 @@ export function Login() {
     try {
       setError(null);
       await login(data.email, data.password);
-      navigate("/dashboard");
+      navigate(from, { replace: true });
     } catch {
       setError("Invalid email or password");
     }
