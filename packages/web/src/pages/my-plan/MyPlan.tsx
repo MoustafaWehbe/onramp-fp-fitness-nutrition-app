@@ -28,7 +28,6 @@ const MUSCLE_COLORS: Record<string, string> = {
   "Full Body": "bg-slate-100 text-slate-700",
   "Legs / Cardio": "bg-emerald-100 text-emerald-700",
   "Hips": "bg-pink-100 text-pink-700",
-  "Shoulders": "bg-purple-100 text-purple-700",
   "Spine": "bg-indigo-100 text-indigo-700",
   "Cardio": "bg-cyan-100 text-cyan-700",
 };
