@@ -7,6 +7,8 @@ export const ROUTES = {
   dashboard: "/dashboard",
   progress: "/progress",
   aiAssistant: "/ai-assistant",
+  myPlan: "/my-plan",
+  dailyLog: "/daily-log",
   settings: "/settings",
   programs: "/programs",
   programDetail: (slug = ":slug") => `/programs/${slug}`,
