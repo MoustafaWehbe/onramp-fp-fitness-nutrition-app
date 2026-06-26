@@ -40,6 +40,15 @@ app.use("/api/", rateLimiter);
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use("/api", router);
 
+// ─── OpenAPI / Swagger UI ─────────────────────────────────────────────────────
+const openApiSpec = yaml.load(
+  fs.readFileSync(path.join(__dirname, "openapi.yaml"), "utf8"),
+) as object;
+app.get("/api/openapi.yaml", (_req, res) =>
+  res.sendFile(path.join(__dirname, "openapi.yaml")),
+);
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
+
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });

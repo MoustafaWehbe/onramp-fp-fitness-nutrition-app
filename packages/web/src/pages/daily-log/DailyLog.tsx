@@ -1,15 +1,36 @@
 import { useState } from "react";
+import {
+  Sunrise,
+  Apple,
+  Salad,
+  Moon,
+  Utensils,
+  UtensilsCrossed,
+  Dumbbell,
+  BedDouble,
+  ClipboardList,
+  ChevronDown,
+  Check,
+  Pencil,
+  X,
+  Circle,
+  Save,
+  CheckCircle2,
+  ArrowRight,
+  type LucideIcon,
+} from "lucide-react";
 import { activeProgram, todayLogs, type DayPlan, type Meal, type MealLog, type WorkoutLog } from "../../mock-data/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const MEAL_ICONS: Record<string, string> = {
-  breakfast: "☀️",
-  snack: "🍎",
-  lunch: "🥗",
-  dinner: "🌙",
+const MEAL_STYLES: Record<string, { icon: LucideIcon; bg: string; text: string }> = {
+  breakfast: { icon: Sunrise, bg: "bg-amber-50", text: "text-amber-600" },
+  snack: { icon: Apple, bg: "bg-emerald-50", text: "text-emerald-600" },
+  lunch: { icon: Salad, bg: "bg-teal-50", text: "text-teal-600" },
+  dinner: { icon: Moon, bg: "bg-indigo-50", text: "text-indigo-600" },
 };
+const DEFAULT_MEAL_STYLE = { icon: Utensils, bg: "bg-slate-50", text: "text-slate-500" };
 
 function getMealKey(meal: Meal, index: number, allMeals: Meal[]): string {
   if (meal.type !== "snack") return meal.type;
@@ -40,17 +61,17 @@ type WorkoutLogState = {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: string }) {
-  const configs: Record<string, { bg: string; text: string; label: string; icon: string }> = {
-    followed: { bg: "bg-emerald-100", text: "text-emerald-700", label: "Followed plan", icon: "✓" },
-    modified: { bg: "bg-amber-100", text: "text-amber-700", label: "Modified", icon: "~" },
-    skipped: { bg: "bg-rose-100", text: "text-rose-700", label: "Skipped", icon: "✗" },
-    completed: { bg: "bg-emerald-100", text: "text-emerald-700", label: "Completed", icon: "✓" },
-    pending: { bg: "bg-slate-100", text: "text-slate-500", label: "Not logged", icon: "○" },
+  const configs: Record<string, { bg: string; text: string; label: string; Icon: LucideIcon }> = {
+    followed: { bg: "bg-emerald-100", text: "text-bold-700", label: "Followed plan", Icon: Check },
+    modified: { bg: "bg-amber-100", text: "text-amber-700", label: "Modified", Icon: Pencil },
+    skipped: { bg: "bg-rose-100", text: "text-rose-700", label: "Skipped", Icon: X },
+    completed: { bg: "bg-emerald-100", text: "text-emerald-700", label: "Completed", Icon: Check },
+    pending: { bg: "bg-slate-100", text: "text-slate-500", label: "Not logged", Icon: Circle },
   };
   const c = configs[status] ?? configs.pending;
   return (
     <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${c.bg} ${c.text}`}>
-      <span>{c.icon}</span> {c.label}
+      <c.Icon className="w-3 h-3" strokeWidth={2.5} /> {c.label}
     </span>
   );
 }
@@ -69,6 +90,8 @@ function MealLogCard({
   onChange: (key: string, updated: MealLogState) => void;
 }) {
   const [expanded, setExpanded] = useState(log.status === "pending");
+  const mealStyle = MEAL_STYLES[meal.type] ?? DEFAULT_MEAL_STYLE;
+  const MealIcon = mealStyle.icon;
 
   const setStatus = (status: MealLogState["status"]) => {
     onChange(mealKey, { ...log, status });
@@ -85,8 +108,8 @@ function MealLogCard({
     <div className={`rounded-2xl border transition-all duration-300 overflow-hidden ${borderColor}`}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3">
-        <div className="w-9 h-9 rounded-xl bg-white/80 flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
-          {MEAL_ICONS[meal.type] ?? "🍽️"}
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${mealStyle.bg}`}>
+          <MealIcon className={`w-[18px] h-[18px] ${mealStyle.text}`} strokeWidth={2} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -104,7 +127,7 @@ function MealLogCard({
             onClick={() => setExpanded(!expanded)}
             className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
           >
-            <span className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}>▾</span>
+            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
           </button>
         </div>
       </div>
@@ -132,17 +155,18 @@ function MealLogCard({
             <div className="grid grid-cols-3 gap-2">
               {(["followed", "modified", "skipped"] as const).map((s) => {
                 const configs = {
-                  followed: { label: "✓ Followed plan", active: "bg-emerald-600 text-white", inactive: "bg-white text-slate-600 border-slate-200 hover:border-emerald-300 hover:text-emerald-700" },
-                  modified: { label: "~ Modified it", active: "bg-amber-500 text-white", inactive: "bg-white text-slate-600 border-slate-200 hover:border-amber-300 hover:text-amber-700" },
-                  skipped: { label: "✗ Skipped", active: "bg-rose-600 text-white", inactive: "bg-white text-slate-600 border-slate-200 hover:border-rose-300 hover:text-rose-700" },
+                  followed: { label: "Followed plan", Icon: Check, active: "bg-emerald-600 text-white", inactive: "bg-white text-slate-600 border-slate-200 hover:border-emerald-300 hover:text-emerald-700" },
+                  modified: { label: "Modified it", Icon: Pencil, active: "bg-amber-500 text-white", inactive: "bg-white text-slate-600 border-slate-200 hover:border-amber-300 hover:text-amber-700" },
+                  skipped: { label: "Skipped", Icon: X, active: "bg-rose-600 text-white", inactive: "bg-white text-slate-600 border-slate-200 hover:border-rose-300 hover:text-rose-700" },
                 };
                 const c = configs[s];
                 return (
                   <button
                     key={s}
                     onClick={() => setStatus(s)}
-                    className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 ${log.status === s ? c.active : c.inactive}`}
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 ${log.status === s ? c.active : c.inactive}`}
                   >
+                    <c.Icon className="w-3.5 h-3.5" strokeWidth={2.5} />
                     {c.label}
                   </button>
                 );
@@ -214,17 +238,18 @@ function WorkoutLogSection({
       <div className="grid grid-cols-3 gap-2">
         {(["completed", "modified", "skipped"] as const).map((s) => {
           const configs = {
-            completed: { label: "✓ Completed", active: "bg-emerald-600 text-white shadow-sm shadow-emerald-200", inactive: "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300" },
-            modified: { label: "~ Modified", active: "bg-amber-500 text-white shadow-sm shadow-amber-200", inactive: "bg-white text-slate-600 border border-slate-200 hover:border-amber-300" },
-            skipped: { label: "✗ Skipped", active: "bg-rose-600 text-white shadow-sm shadow-rose-200", inactive: "bg-white text-slate-600 border border-slate-200 hover:border-rose-300" },
+            completed: { label: "Completed", Icon: Check, active: "bg-emerald-600 text-white shadow-sm shadow-emerald-200", inactive: "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300" },
+            modified: { label: "Modified", Icon: Pencil, active: "bg-amber-500 text-white shadow-sm shadow-amber-200", inactive: "bg-white text-slate-600 border border-slate-200 hover:border-amber-300" },
+            skipped: { label: "Skipped", Icon: X, active: "bg-rose-600 text-white shadow-sm shadow-rose-200", inactive: "bg-white text-slate-600 border border-slate-200 hover:border-rose-300" },
           };
           const c = configs[s];
           return (
             <button
               key={s}
               onClick={() => onChange({ ...log, status: s })}
-              className={`py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${log.status === s ? c.active : c.inactive}`}
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${log.status === s ? c.active : c.inactive}`}
             >
+              <c.Icon className="w-4 h-4" strokeWidth={2.5} />
               {c.label}
             </button>
           );
@@ -258,7 +283,7 @@ function WorkoutLogSection({
                   <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
                     done ? "bg-indigo-600 border-indigo-600" : "border-slate-300"
                   }`}>
-                    {done && <span className="text-white text-xs font-bold">✓</span>}
+                    {done && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                   </div>
                   <div className="flex-1">
                     <p className={`text-sm font-medium transition-colors ${done ? "text-slate-400 line-through" : "text-slate-700"}`}>
@@ -376,7 +401,8 @@ export function DailyLog() {
               : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200"
           }`}
         >
-          {saved ? "✓ Saved!" : "💾 Save Log"}
+          {saved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+          {saved ? "Saved" : "Save Log"}
         </button>
       </div>
 
@@ -438,14 +464,14 @@ export function DailyLog() {
 
       {/* ── Program context bar ── */}
       <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-        <span className="text-lg">📋</span>
+        <ClipboardList className="w-[18px] h-[18px] text-slate-500 flex-shrink-0" strokeWidth={2} />
         <div>
           <span className="font-semibold text-slate-700">{program.title}</span>
           <span className="text-slate-400 mx-2">·</span>
           <span className="text-slate-500">Week {program.currentWeek} · {day.isRestDay ? "Rest Day" : day.workout?.name ?? "Training Day"}</span>
         </div>
-        <a href="/my-plan" className="ml-auto text-indigo-600 text-xs font-semibold hover:underline whitespace-nowrap">
-          View plan →
+        <a href="/my-plan" className="ml-auto inline-flex items-center gap-1 text-indigo-600 text-xs font-semibold hover:underline whitespace-nowrap">
+          View plan <ArrowRight className="w-3 h-3" />
         </a>
       </div>
 
@@ -456,11 +482,12 @@ export function DailyLog() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-200 capitalize ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 capitalize ${
                 activeTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              {tab === "meals" ? `🍽️ Meals` : `🏋️ Workout`}
+              {tab === "meals" ? <UtensilsCrossed className="w-4 h-4" /> : <Dumbbell className="w-4 h-4" />}
+              {tab === "meals" ? "Meals" : "Workout"}
             </button>
           ))}
         </div>
@@ -496,7 +523,9 @@ export function DailyLog() {
             <>
               <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-xl">🏋️</div>
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                    <Dumbbell className="w-5 h-5 text-indigo-600" strokeWidth={2} />
+                  </div>
                   <div>
                     <p className="font-bold text-slate-800">{day.workout.name}</p>
                     <p className="text-xs text-slate-500 mt-0.5">
@@ -505,13 +534,16 @@ export function DailyLog() {
                   </div>
                   {workoutLog.status !== "pending" && (
                     <div className="ml-auto">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                      <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
                         workoutLog.status === "completed" ? "bg-emerald-100 text-emerald-700" :
                         workoutLog.status === "modified" ? "bg-amber-100 text-amber-700" :
                         "bg-rose-100 text-rose-700"
                       }`}>
-                        {workoutLog.status === "completed" ? "✓ Completed" :
-                         workoutLog.status === "modified" ? "~ Modified" : "✗ Skipped"}
+                        {workoutLog.status === "completed" ? <Check className="w-3 h-3" strokeWidth={2.5} /> :
+                         workoutLog.status === "modified" ? <Pencil className="w-3 h-3" strokeWidth={2.5} /> :
+                         <X className="w-3 h-3" strokeWidth={2.5} />}
+                        {workoutLog.status === "completed" ? "Completed" :
+                         workoutLog.status === "modified" ? "Modified" : "Skipped"}
                       </span>
                     </div>
                   )}
@@ -521,7 +553,7 @@ export function DailyLog() {
             </>
           ) : (
             <div className="text-center py-12 text-slate-400">
-              <span className="text-4xl">🛌</span>
+              <BedDouble className="w-10 h-10 mx-auto" strokeWidth={1.5} />
               <p className="font-semibold text-slate-600 mt-3">Rest Day — No workout scheduled</p>
             </div>
           )}
@@ -531,7 +563,7 @@ export function DailyLog() {
       {/* ── Rest day note ── */}
       {day.isRestDay && (
         <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
-          <span className="text-2xl">🛌</span>
+          <BedDouble className="w-7 h-7 mx-auto text-slate-400" strokeWidth={1.5} />
           <p className="font-semibold text-slate-700 mt-2">Rest Day</p>
           <p className="text-sm text-slate-500 mt-1">No workout to log. Focus on nutrition and recovery.</p>
         </div>
@@ -542,13 +574,14 @@ export function DailyLog() {
         <button
           onClick={handleSave}
           disabled={saved}
-          className={`w-full py-3.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-sm ${
+          className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-sm ${
             saved
               ? "bg-emerald-600 text-white shadow-emerald-200"
               : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200"
           }`}
         >
-          {saved ? "✅ Log saved successfully!" : "Save Today's Log"}
+          {saved ? <CheckCircle2 className="w-4 h-4" /> : null}
+          {saved ? "Log saved successfully!" : "Save Today's Log"}
         </button>
       </div>
     </div>
