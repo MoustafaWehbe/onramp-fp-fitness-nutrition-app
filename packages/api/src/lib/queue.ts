@@ -1,1 +1,1 @@
-export { emailQueue, embeddingsQueue } from "@starter-kit/shared";
+export { getEmailQueue, getEmbeddingsQueue } from "@starter-kit/shared";

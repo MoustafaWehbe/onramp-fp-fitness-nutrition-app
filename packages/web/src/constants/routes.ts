@@ -5,6 +5,8 @@ export const ROUTES = {
   forgotPassword: "/forgot-password",
   onboarding: "/onboarding",
   dashboard: "/dashboard",
+  progress: "/progress",
+  aiAssistant: "/ai-assistant",
   settings: "/settings",
   programs: "/programs",
   programDetail: (slug = ":slug") => `/programs/${slug}`,

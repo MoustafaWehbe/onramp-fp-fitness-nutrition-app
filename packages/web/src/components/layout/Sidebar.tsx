@@ -1,9 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Settings } from "lucide-react";
+import { Bot, ChartNoAxesCombined, LayoutDashboard, Settings } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/progress", label: "Progress", icon: ChartNoAxesCombined },
+  { to: "/ai-assistant", label: "AI Assistant", icon: Bot },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 

@@ -9,7 +9,13 @@ const PORT = parseInt(process.env.PORT ?? "3000", 10);
 
 async function start(): Promise<void> {
   try {
-    await initializeDatabase();
+    if (process.env.DATABASE_URL || process.env.NODE_ENV === "production") {
+      await initializeDatabase();
+    } else {
+      console.warn(
+        "DATABASE_URL is not set; starting API without database for local development.",
+      );
+    }
 
     app.listen(PORT, () => {
       console.info(`API server running on http://localhost:${PORT}`);

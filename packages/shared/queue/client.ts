@@ -30,7 +30,15 @@ function createQueue<T>(name: string): Queue<T> {
   });
 }
 
-export const emailQueue = createQueue<EmailJobData>(QUEUE_NAMES.EMAIL);
-export const embeddingsQueue = createQueue<EmbeddingsJobData>(
-  QUEUE_NAMES.EMBEDDINGS,
-);
+let emailQueue: Queue<EmailJobData> | null = null;
+let embeddingsQueue: Queue<EmbeddingsJobData> | null = null;
+
+export function getEmailQueue(): Queue<EmailJobData> {
+  emailQueue ??= createQueue<EmailJobData>(QUEUE_NAMES.EMAIL);
+  return emailQueue;
+}
+
+export function getEmbeddingsQueue(): Queue<EmbeddingsJobData> {
+  embeddingsQueue ??= createQueue<EmbeddingsJobData>(QUEUE_NAMES.EMBEDDINGS);
+  return embeddingsQueue;
+}
