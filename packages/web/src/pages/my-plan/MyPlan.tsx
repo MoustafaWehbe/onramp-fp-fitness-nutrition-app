@@ -1,15 +1,37 @@
 import { useState } from "react";
+import {
+  Sunrise,
+  Apple,
+  Salad,
+  Moon,
+  Utensils,
+  UtensilsCrossed,
+  Dumbbell,
+  Activity,
+  Flower2,
+  BedDouble,
+  ChevronDown,
+  Check,
+  X,
+  Pencil,
+  CheckCircle2,
+  BarChart3,
+  NotebookPen,
+  ArrowRight,
+  type LucideIcon,
+} from "lucide-react";
 import { activeProgram, todayLogs, type DayPlan, type Meal } from "../../mock-data/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const MEAL_ICONS: Record<string, string> = {
-  breakfast: "☀️",
-  snack: "🍎",
-  lunch: "🥗",
-  dinner: "🌙",
+const MEAL_STYLES: Record<string, { icon: LucideIcon; bg: string; text: string }> = {
+  breakfast: { icon: Sunrise, bg: "bg-amber-50", text: "text-amber-600" },
+  snack: { icon: Apple, bg: "bg-emerald-50", text: "text-emerald-600" },
+  lunch: { icon: Salad, bg: "bg-teal-50", text: "text-teal-600" },
+  dinner: { icon: Moon, bg: "bg-indigo-50", text: "text-indigo-600" },
 };
+const DEFAULT_MEAL_STYLE = { icon: Utensils, bg: "bg-slate-50", text: "text-slate-500" };
 
 const MUSCLE_COLORS: Record<string, string> = {
   "Chest": "bg-rose-100 text-rose-700",
@@ -28,15 +50,14 @@ const MUSCLE_COLORS: Record<string, string> = {
   "Full Body": "bg-slate-100 text-slate-700",
   "Legs / Cardio": "bg-emerald-100 text-emerald-700",
   "Hips": "bg-pink-100 text-pink-700",
-  "Shoulders": "bg-purple-100 text-purple-700",
   "Spine": "bg-indigo-100 text-indigo-700",
   "Cardio": "bg-cyan-100 text-cyan-700",
 };
 
-const WORKOUT_TYPE_STYLE: Record<string, { bg: string; text: string; border: string }> = {
-  "Strength": { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200" },
-  "Cardio": { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
-  "Mobility": { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+const WORKOUT_TYPE_STYLE: Record<string, { bg: string; text: string; border: string; icon: LucideIcon }> = {
+  "Strength": { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", icon: Dumbbell },
+  "Cardio": { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200", icon: Activity },
+  "Mobility": { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", icon: Flower2 },
 };
 
 function getMealSnackLabel(meal: Meal, index: number, allMeals: Meal[]): string {
@@ -136,6 +157,8 @@ function DayNavButton({
 function MealCard({ meal, index, allMeals }: { meal: Meal; index: number; allMeals: Meal[] }) {
   const [expanded, setExpanded] = useState(false);
   const label = getMealSnackLabel(meal, index, allMeals);
+  const mealStyle = MEAL_STYLES[meal.type] ?? DEFAULT_MEAL_STYLE;
+  const MealIcon = mealStyle.icon;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
@@ -143,8 +166,8 @@ function MealCard({ meal, index, allMeals }: { meal: Meal; index: number; allMea
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
       >
-        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-xl flex-shrink-0">
-          {MEAL_ICONS[meal.type] ?? "🍽️"}
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${mealStyle.bg}`}>
+          <MealIcon className={`w-5 h-5 ${mealStyle.text}`} strokeWidth={2} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -159,9 +182,7 @@ function MealCard({ meal, index, allMeals }: { meal: Meal; index: number; allMea
           <p className="text-sm font-bold text-slate-800">{meal.totalCalories}</p>
           <p className="text-[10px] text-slate-400">kcal</p>
         </div>
-        <span className={`text-slate-400 ml-1 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}>
-          ▾
-        </span>
+        <ChevronDown className={`w-4 h-4 text-slate-400 ml-1 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
       </button>
 
       {expanded && (
@@ -195,13 +216,14 @@ function WorkoutCard({ day }: { day: DayPlan }) {
   if (!day.workout) return null;
   const { workout } = day;
   const style = WORKOUT_TYPE_STYLE[workout.type] ?? WORKOUT_TYPE_STYLE["Strength"];
+  const TypeIcon = style.icon;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <button onClick={() => setExpanded(!expanded)} className="w-full text-left">
         <div className="flex items-center gap-3 px-4 py-3.5">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${style.bg}`}>
-            {workout.type === "Strength" ? "🏋️" : workout.type === "Cardio" ? "🏃" : "🧘"}
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${style.bg}`}>
+            <TypeIcon className={`w-5 h-5 ${style.text}`} strokeWidth={2} />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
@@ -214,9 +236,7 @@ function WorkoutCard({ day }: { day: DayPlan }) {
               {workout.exercises.length} exercises · {workout.duration}
             </p>
           </div>
-          <span className={`text-slate-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}>
-            ▾
-          </span>
+          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
         </div>
       </button>
 
@@ -281,7 +301,7 @@ export function MyPlan() {
           href="/daily-log"
           className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm shadow-indigo-200"
         >
-          <span>📝</span> Log Today
+          <NotebookPen className="w-4 h-4" /> Log Today
         </a>
       </div>
 
@@ -343,18 +363,19 @@ export function MyPlan() {
           </p>
         </div>
         {day.isRestDay ? (
-          <span className="bg-slate-100 text-slate-600 text-sm font-semibold px-3 py-1.5 rounded-xl">
-            🛌 Rest Day
+          <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 text-sm font-semibold px-3 py-1.5 rounded-xl">
+            <BedDouble className="w-4 h-4" /> Rest Day
           </span>
         ) : logStatus.workoutStatus ? (
-          <span className={`text-sm font-semibold px-3 py-1.5 rounded-xl ${
+          <span className={`inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-xl ${
             logStatus.workoutStatus === "completed"
               ? "bg-emerald-100 text-emerald-700"
               : logStatus.workoutStatus === "skipped"
               ? "bg-rose-100 text-rose-700"
               : "bg-amber-100 text-amber-700"
           }`}>
-            {logStatus.workoutStatus === "completed" ? "✓ Completed" : logStatus.workoutStatus === "skipped" ? "✗ Skipped" : "~ Modified"}
+            {logStatus.workoutStatus === "completed" ? <Check className="w-4 h-4" /> : logStatus.workoutStatus === "skipped" ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+            {logStatus.workoutStatus === "completed" ? "Completed" : logStatus.workoutStatus === "skipped" ? "Skipped" : "Modified"}
           </span>
         ) : null}
       </div>
@@ -381,13 +402,17 @@ export function MyPlan() {
           mealAdherence === 100 ? "bg-emerald-50 border border-emerald-200" : "bg-amber-50 border border-amber-200"
         }`}>
           <div className="flex items-center gap-2">
-            <span>{mealAdherence === 100 ? "✅" : "📊"}</span>
+            {mealAdherence === 100 ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            ) : (
+              <BarChart3 className="w-4 h-4 text-amber-600" />
+            )}
             <span className={`font-semibold ${mealAdherence === 100 ? "text-emerald-700" : "text-amber-700"}`}>
               {logStatus.meals}/{logStatus.total} meals logged · {mealAdherence}% adherence
             </span>
           </div>
-          <a href="/daily-log" className={`text-xs font-semibold underline underline-offset-2 ${mealAdherence === 100 ? "text-emerald-600" : "text-amber-600"}`}>
-            Update log →
+          <a href="/daily-log" className={`inline-flex items-center gap-1 text-xs font-semibold underline underline-offset-2 ${mealAdherence === 100 ? "text-emerald-600" : "text-amber-600"}`}>
+            Update log <ArrowRight className="w-3 h-3" />
           </a>
         </div>
       )}
@@ -399,11 +424,12 @@ export function MyPlan() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-200 capitalize ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 capitalize ${
                 activeTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              {tab === "meals" ? `🍽️ Meals (${day.meals.length})` : `🏋️ Workout`}
+              {tab === "meals" ? <UtensilsCrossed className="w-4 h-4" /> : <Dumbbell className="w-4 h-4" />}
+              {tab === "meals" ? `Meals (${day.meals.length})` : "Workout"}
             </button>
           ))}
         </div>
@@ -425,7 +451,7 @@ export function MyPlan() {
             <WorkoutCard day={day} />
           ) : (
             <div className="text-center py-12 text-slate-400">
-              <p className="text-4xl mb-3">🛌</p>
+              <BedDouble className="w-10 h-10 mx-auto mb-3" strokeWidth={1.5} />
               <p className="font-semibold text-slate-600">Rest Day</p>
               <p className="text-sm mt-1">No workout scheduled. Focus on recovery.</p>
             </div>
@@ -441,7 +467,7 @@ export function MyPlan() {
             <MealCard key={i} meal={meal} index={i} allMeals={day.meals} />
           ))}
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-center">
-            <span className="text-3xl">🛌</span>
+            <BedDouble className="w-8 h-8 mx-auto text-slate-400" strokeWidth={1.5} />
             <p className="font-semibold text-slate-700 mt-2">Active Rest Day</p>
             <p className="text-sm text-slate-500 mt-1">Light activity only — walk, stretch, recover. Let your muscles rebuild.</p>
           </div>
