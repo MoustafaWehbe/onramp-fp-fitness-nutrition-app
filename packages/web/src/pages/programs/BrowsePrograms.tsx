@@ -1,11 +1,9 @@
 import { useMemo, useState } from "react";
 import { SearchX } from "lucide-react";
 import { PROGRAMS } from "../../mocks/programs";
-import { ProgramCard } from "./ProgramCard";
-import {
-  ProgramFilters,
-  type ProgramFilterState,
-} from "./ProgramFilters";
+import { activeProgram } from "../../mock-data/mockData";
+import { ProgramPlanCard } from "./ProgramPlanCard";
+import { ProgramFilters, type ProgramFilterState } from "./ProgramFilters";
 
 const initialFilters: ProgramFilterState = {
   search: "",
@@ -30,16 +28,19 @@ export const BrowsePrograms = () => {
     });
   }, [filters]);
 
+  const hasFilters =
+    filters.search !== "" || filters.goal !== "all" || filters.level !== "all";
+
   return (
     <div className="space-y-8">
       <div>
         <p className="eyebrow text-muted-foreground">The catalog</p>
-        <h1 className="mt-2 font-display text-4xl uppercase tracking-tight">
-          Browse programs
+        <h1 className="mt-2 font-display text-4xl uppercase tracking-tight sm:text-5xl">
+          Choose your program
         </h1>
-        <p className="mt-1 text-muted-foreground">
-          Pick the plan that matches your goal — it becomes your personal
-          schedule.
+        <p className="mt-2 max-w-xl text-muted-foreground">
+          Each plan includes a full weekly meal and workout schedule — pick one
+          and it becomes your day-by-day plan.
         </p>
       </div>
 
@@ -49,21 +50,24 @@ export const BrowsePrograms = () => {
         <span>
           {results.length} program{results.length === 1 ? "" : "s"}
         </span>
-        {filters !== initialFilters &&
-          (filters.search || filters.goal !== "all" || filters.level !== "all") && (
-            <button
-              onClick={() => setFilters(initialFilters)}
-              className="font-medium text-foreground hover:text-primary"
-            >
-              Clear filters
-            </button>
-          )}
+        {hasFilters && (
+          <button
+            onClick={() => setFilters(initialFilters)}
+            className="font-medium text-foreground hover:text-primary"
+          >
+            Clear filters
+          </button>
+        )}
       </div>
 
       {results.length > 0 ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {results.map((p) => (
-            <ProgramCard key={p.id} program={p} />
+            <ProgramPlanCard
+              key={p.id}
+              program={p}
+              active={p.title === activeProgram.title}
+            />
           ))}
         </div>
       ) : (

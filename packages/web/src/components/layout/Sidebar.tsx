@@ -1,15 +1,16 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Settings, CalendarDays, ClipboardList , Bot, ChartNoAxesCombined,} from "lucide-react";
+import { LayoutDashboard, Settings, CalendarDays, ClipboardList , Bot, ChartNoAxesCombined, BookOpen,} from "lucide-react";
+import { ROUTES } from "../../constants/routes";
 import { cn } from "../../lib/utils";
 
 const navItems = [
-  { to: "/dashboard",  label: "Dashboard", icon: LayoutDashboard },
-  { to: "/settings",   label: "Settings",  icon: Settings },
-  { to: "/my-plan",    label: "My Plan",   icon: CalendarDays },
-  { to: "/daily-log",  label: "Daily Log", icon: ClipboardList },
-  { to: "/progress", label: "Progress", icon: ChartNoAxesCombined },
-  { to: "/ai-assistant", label: "AI Assistant", icon: Bot },
-
+  { to: ROUTES.dashboard,   label: "Dashboard",        icon: LayoutDashboard },
+  { to: ROUTES.programs,    label: "Browse Programs",  icon: BookOpen },
+  { to: ROUTES.myPlan,      label: "My Plan",          icon: CalendarDays },
+  { to: ROUTES.dailyLog,    label: "Daily Log",        icon: ClipboardList },
+  { to: ROUTES.progress,    label: "Progress",         icon: ChartNoAxesCombined },
+  { to: ROUTES.aiAssistant, label: "AI Assistant",     icon: Bot },
+  { to: ROUTES.settings,    label: "Settings",         icon: Settings },
 ];
 
 export function Sidebar() {
