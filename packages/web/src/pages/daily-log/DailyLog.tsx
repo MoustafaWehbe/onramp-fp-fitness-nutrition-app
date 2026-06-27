@@ -1,14 +1,42 @@
 import { useState } from "react";
-import { activeProgram, todayLogs, type DayPlan, type Meal, type MealLog, type WorkoutLog } from "../../mock-data/mockData";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { activeProgram, todayLogs, type DayPlan, type Meal } from "../../mock-data/mockData";
+import { Card, CardContent } from "../../components/ui/card";
+import {
+  Sunrise,
+  Apple,
+  Salad,
+  Moon,
+  Utensils,
+  Save,
+  ChevronDown,
+  Dumbbell,
+  Activity,
+  Flower2,
+  BedDouble,
+  Check,
+  X,
+  Pencil,
+  Circle,
+  BarChart3,
+  CheckCircle2,
+  ClipboardList,
+  ArrowRight,
+  type LucideIcon,
+} from "lucide-react";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const MEAL_ICONS: Record<string, string> = {
-  breakfast: "☀️",
-  snack: "🍎",
-  lunch: "🥗",
-  dinner: "🌙",
+const MEAL_ICONS: Record<string, LucideIcon> = {
+  breakfast: Sunrise,
+  snack: Apple,
+  lunch: Salad,
+  dinner: Moon,
+};
+
+const WORKOUT_TYPE_ICON: Record<string, LucideIcon> = {
+  Strength: Dumbbell,
+  Cardio: Activity,
+  Mobility: Flower2,
 };
 
 function getMealKey(meal: Meal, index: number, allMeals: Meal[]): string {
@@ -40,17 +68,17 @@ type WorkoutLogState = {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: string }) {
-  const configs: Record<string, { bg: string; text: string; label: string; icon: string }> = {
-    followed: { bg: "bg-emerald-100", text: "text-emerald-700", label: "Followed plan", icon: "✓" },
-    modified: { bg: "bg-amber-100", text: "text-amber-700", label: "Modified", icon: "~" },
-    skipped: { bg: "bg-rose-100", text: "text-rose-700", label: "Skipped", icon: "✗" },
-    completed: { bg: "bg-emerald-100", text: "text-emerald-700", label: "Completed", icon: "✓" },
-    pending: { bg: "bg-slate-100", text: "text-slate-500", label: "Not logged", icon: "○" },
+  const configs: Record<string, { bg: string; text: string; label: string; icon: LucideIcon }> = {
+    followed: { bg: "bg-primary", text: "text-primary-foreground", label: "Followed plan", icon: Check },
+    modified: { bg: "bg-accent", text: "text-accent-foreground", label: "Modified", icon: Pencil },
+    skipped: { bg: "bg-destructive", text: "text-destructive-foreground", label: "Skipped", icon: X },
+    completed: { bg: "bg-primary", text: "text-primary-foreground", label: "Completed", icon: Check },
+    pending: { bg: "bg-muted", text: "text-muted-foreground", label: "Not logged", icon: Circle },
   };
   const c = configs[status] ?? configs.pending;
   return (
     <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${c.bg} ${c.text}`}>
-      <span>{c.icon}</span> {c.label}
+      <c.icon className="w-3 h-3" /> {c.label}
     </span>
   );
 }
@@ -69,6 +97,7 @@ function MealLogCard({
   onChange: (key: string, updated: MealLogState) => void;
 }) {
   const [expanded, setExpanded] = useState(log.status === "pending");
+  const Icon = MEAL_ICONS[meal.type] ?? Utensils;
 
   const setStatus = (status: MealLogState["status"]) => {
     onChange(mealKey, { ...log, status });
@@ -76,24 +105,27 @@ function MealLogCard({
   };
 
   const borderColor =
-    log.status === "followed" ? "border-emerald-200 bg-emerald-50/30"
-    : log.status === "modified" ? "border-amber-200 bg-amber-50/30"
-    : log.status === "skipped" ? "border-rose-200 bg-rose-50/30"
-    : "border-slate-200 bg-white";
+    log.status === "followed"
+      ? "border-primary/30 bg-primary/5"
+      : log.status === "modified"
+      ? "border-border bg-accent/40"
+      : log.status === "skipped"
+      ? "border-destructive/30 bg-destructive/5"
+      : "border-border bg-card";
 
   return (
     <div className={`rounded-2xl border transition-all duration-300 overflow-hidden ${borderColor}`}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3">
-        <div className="w-9 h-9 rounded-xl bg-white/80 flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
-          {MEAL_ICONS[meal.type] ?? "🍽️"}
+        <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 shadow-sm">
+          <Icon className="w-4 h-4 text-secondary-foreground" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-semibold text-slate-800 text-sm">{label}</p>
-            <span className="text-xs text-slate-400">{meal.time}</span>
+            <p className="font-semibold text-card-foreground text-sm">{label}</p>
+            <span className="text-xs text-muted-foreground">{meal.time}</span>
           </div>
-          <p className="text-xs text-slate-500 truncate">
+          <p className="text-xs text-muted-foreground truncate">
             {meal.items.slice(0, 3).map((i) => i.name).join(", ")}
             {meal.items.length > 3 && " ..."}
           </p>
@@ -102,9 +134,9 @@ function MealLogCard({
           <StatusBadge status={log.status} />
           <button
             onClick={() => setExpanded(!expanded)}
-            className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+            className="w-7 h-7 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
-            <span className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}>▾</span>
+            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
           </button>
         </div>
       </div>
@@ -112,38 +144,59 @@ function MealLogCard({
       {/* Plan preview */}
       {expanded && (
         <div className="px-4 pb-4 space-y-4">
-          <div className="bg-white rounded-xl p-3 border border-slate-100 space-y-1.5">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Planned meals</p>
+          <div className="bg-card rounded-xl p-3 border border-border space-y-1.5">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Planned meals</p>
             {meal.items.map((item, i) => (
               <div key={i} className="flex justify-between text-xs">
-                <span className="text-slate-600">{item.name} <span className="text-slate-400">— {item.quantity}</span></span>
-                <span className="font-semibold text-slate-700">{item.calories} kcal</span>
+                <span className="text-muted-foreground">
+                  {item.name} <span className="text-muted-foreground/70">— {item.quantity}</span>
+                </span>
+                <span className="font-semibold text-card-foreground">{item.calories} kcal</span>
               </div>
             ))}
-            <div className="border-t border-slate-100 pt-2 mt-2 flex justify-between text-xs font-bold">
-              <span className="text-slate-700">Total</span>
-              <span className="text-indigo-600">{meal.totalCalories} kcal · {meal.totalProtein}g P · {meal.totalCarbs}g C · {meal.totalFat}g F</span>
+            <div className="border-t border-border pt-2 mt-2 flex justify-between text-xs font-bold">
+              <span className="text-card-foreground">Total</span>
+              <span className="text-primary">
+                {meal.totalCalories} kcal · {meal.totalProtein}g P · {meal.totalCarbs}g C · {meal.totalFat}g F
+              </span>
             </div>
           </div>
 
           {/* Action buttons */}
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">How did it go?</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">How did it go?</p>
             <div className="grid grid-cols-3 gap-2">
               {(["followed", "modified", "skipped"] as const).map((s) => {
                 const configs = {
-                  followed: { label: "✓ Followed plan", active: "bg-emerald-600 text-white", inactive: "bg-white text-slate-600 border-slate-200 hover:border-emerald-300 hover:text-emerald-700" },
-                  modified: { label: "~ Modified it", active: "bg-amber-500 text-white", inactive: "bg-white text-slate-600 border-slate-200 hover:border-amber-300 hover:text-amber-700" },
-                  skipped: { label: "✗ Skipped", active: "bg-rose-600 text-white", inactive: "bg-white text-slate-600 border-slate-200 hover:border-rose-300 hover:text-rose-700" },
+                  followed: {
+                    label: "Followed plan",
+                    icon: Check,
+                    active: "bg-primary text-primary-foreground border-primary",
+                    inactive: "bg-card text-muted-foreground border-border hover:border-primary/50 hover:text-primary",
+                  },
+                  modified: {
+                    label: "Modified it",
+                    icon: Pencil,
+                    active: "bg-accent text-accent-foreground border-border",
+                    inactive: "bg-card text-muted-foreground border-border hover:border-accent-foreground/30 hover:text-accent-foreground",
+                  },
+                  skipped: {
+                    label: "Skipped",
+                    icon: X,
+                    active: "bg-destructive text-destructive-foreground border-destructive",
+                    inactive: "bg-card text-muted-foreground border-border hover:border-destructive/50 hover:text-destructive",
+                  },
                 };
                 const c = configs[s];
                 return (
                   <button
                     key={s}
                     onClick={() => setStatus(s)}
-                    className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 ${log.status === s ? c.active : c.inactive}`}
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 ${
+                      log.status === s ? c.active : c.inactive
+                    }`}
                   >
-                    {c.label}
+                    <c.icon className="w-3.5 h-3.5" /> {c.label}
                   </button>
                 );
               })}
@@ -155,26 +208,30 @@ function MealLogCard({
             <div className="space-y-2">
               {log.status === "modified" && (
                 <div>
-                  <label className="text-xs font-semibold text-slate-500 block mb-1">Actual calories (optional)</label>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-1">Actual calories (optional)</label>
                   <input
                     type="number"
                     placeholder="e.g. 520"
                     value={log.actualCalories}
                     onChange={(e) => onChange(mealKey, { ...log, actualCalories: e.target.value })}
-                    className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
+                    className="w-full text-sm border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring bg-card text-card-foreground"
                   />
                 </div>
               )}
               <div>
-                <label className="text-xs font-semibold text-slate-500 block mb-1">
+                <label className="text-xs font-semibold text-muted-foreground block mb-1">
                   {log.status === "modified" ? "What did you have instead?" : "Why did you skip?"}
                 </label>
                 <textarea
-                  placeholder={log.status === "modified" ? "e.g. Had a chicken sandwich, roughly 500 kcal" : "e.g. Had a work lunch, wasn't able to stick to plan"}
+                  placeholder={
+                    log.status === "modified"
+                      ? "e.g. Had a chicken sandwich, roughly 500 kcal"
+                      : "e.g. Had a work lunch, wasn't able to stick to plan"
+                  }
                   value={log.note}
                   onChange={(e) => onChange(mealKey, { ...log, note: e.target.value })}
                   rows={2}
-                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white resize-none"
+                  className="w-full text-sm border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring bg-card text-card-foreground resize-none"
                 />
               </div>
             </div>
@@ -204,9 +261,8 @@ function WorkoutLogSection({
     onChange({ ...log, completedExercises: next });
   };
 
-  const completionPct = workout.exercises.length > 0
-    ? Math.round((log.completedExercises.size / workout.exercises.length) * 100)
-    : 0;
+  const completionPct =
+    workout.exercises.length > 0 ? Math.round((log.completedExercises.size / workout.exercises.length) * 100) : 0;
 
   return (
     <div className="space-y-4">
@@ -214,18 +270,35 @@ function WorkoutLogSection({
       <div className="grid grid-cols-3 gap-2">
         {(["completed", "modified", "skipped"] as const).map((s) => {
           const configs = {
-            completed: { label: "✓ Completed", active: "bg-emerald-600 text-white shadow-sm shadow-emerald-200", inactive: "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300" },
-            modified: { label: "~ Modified", active: "bg-amber-500 text-white shadow-sm shadow-amber-200", inactive: "bg-white text-slate-600 border border-slate-200 hover:border-amber-300" },
-            skipped: { label: "✗ Skipped", active: "bg-rose-600 text-white shadow-sm shadow-rose-200", inactive: "bg-white text-slate-600 border border-slate-200 hover:border-rose-300" },
+            completed: {
+              label: "Completed",
+              icon: Check,
+              active: "bg-primary text-primary-foreground shadow-sm",
+              inactive: "bg-card text-muted-foreground border border-border hover:border-primary/50",
+            },
+            modified: {
+              label: "Modified",
+              icon: Pencil,
+              active: "bg-accent text-accent-foreground shadow-sm",
+              inactive: "bg-card text-muted-foreground border border-border hover:border-accent-foreground/30",
+            },
+            skipped: {
+              label: "Skipped",
+              icon: X,
+              active: "bg-destructive text-destructive-foreground shadow-sm",
+              inactive: "bg-card text-muted-foreground border border-border hover:border-destructive/50",
+            },
           };
           const c = configs[s];
           return (
             <button
               key={s}
               onClick={() => onChange({ ...log, status: s })}
-              className={`py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${log.status === s ? c.active : c.inactive}`}
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                log.status === s ? c.active : c.inactive
+              }`}
             >
-              {c.label}
+              <c.icon className="w-4 h-4" /> {c.label}
             </button>
           );
         })}
@@ -233,40 +306,39 @@ function WorkoutLogSection({
 
       {/* Exercise checklist — shown when completed or modified */}
       {(log.status === "completed" || log.status === "modified") && (
-        <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-50 flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-700">Exercise checklist</p>
+        <div className="bg-card border border-border rounded-2xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+            <p className="text-sm font-semibold text-card-foreground">Exercise checklist</p>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500">{log.completedExercises.size}/{workout.exercises.length}</span>
-              <div className="w-20 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-indigo-500 transition-all duration-300"
-                  style={{ width: `${completionPct}%` }}
-                />
+              <span className="text-xs text-muted-foreground">{log.completedExercises.size}/{workout.exercises.length}</span>
+              <div className="w-20 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${completionPct}%` }} />
               </div>
             </div>
           </div>
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y divide-border">
             {workout.exercises.map((ex, i) => {
               const done = log.completedExercises.has(ex.name);
               return (
                 <button
                   key={i}
                   onClick={() => toggleExercise(ex.name)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-secondary transition-colors"
                 >
-                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
-                    done ? "bg-indigo-600 border-indigo-600" : "border-slate-300"
-                  }`}>
-                    {done && <span className="text-white text-xs font-bold">✓</span>}
+                  <div
+                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
+                      done ? "bg-primary border-primary" : "border-border"
+                    }`}
+                  >
+                    {done && <Check className="w-3 h-3 text-primary-foreground" />}
                   </div>
                   <div className="flex-1">
-                    <p className={`text-sm font-medium transition-colors ${done ? "text-slate-400 line-through" : "text-slate-700"}`}>
+                    <p className={`text-sm font-medium transition-colors ${done ? "text-muted-foreground line-through" : "text-card-foreground"}`}>
                       {ex.name}
                     </p>
-                    <p className="text-xs text-slate-400">{ex.sets} sets × {ex.reps} · Rest {ex.rest}</p>
+                    <p className="text-xs text-muted-foreground">{ex.sets} sets × {ex.reps} · Rest {ex.rest}</p>
                   </div>
-                  <span className="text-xs text-slate-400">{ex.muscle}</span>
+                  <span className="text-xs text-muted-foreground">{ex.muscle}</span>
                 </button>
               );
             })}
@@ -276,19 +348,17 @@ function WorkoutLogSection({
 
       {/* Notes */}
       <div>
-        <label className="text-xs font-semibold text-slate-500 block mb-1.5">
+        <label className="text-xs font-semibold text-muted-foreground block mb-1.5">
           {log.status === "skipped" ? "Why did you skip?" : "Notes (PRs, how you felt, etc.)"}
         </label>
         <textarea
           value={log.note}
           onChange={(e) => onChange({ ...log, note: e.target.value })}
           placeholder={
-            log.status === "skipped"
-              ? "e.g. Felt sick, rescheduling to tomorrow"
-              : "e.g. Hit a new PR on bench press — 85kg × 6"
+            log.status === "skipped" ? "e.g. Felt sick, rescheduling to tomorrow" : "e.g. Hit a new PR on bench press — 85kg × 6"
           }
           rows={2}
-          className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white resize-none"
+          className="w-full text-sm border border-border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring bg-card text-card-foreground resize-none"
         />
       </div>
     </div>
@@ -354,15 +424,16 @@ export function DailyLog() {
   const logProgress = totalMeals > 0 ? Math.round((loggedMeals / totalMeals) * 100) : 0;
 
   const isToday = day.date === program.weekPlan[todayIndex].date;
+  const WorkoutTypeIcon = day.workout ? WORKOUT_TYPE_ICON[day.workout.type] ?? Dumbbell : Dumbbell;
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
+    <div className="space-y-6">
 
       {/* ── Header ── */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Daily Log</h1>
-          <p className="text-slate-500 mt-0.5 text-sm">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Daily Log</h1>
+          <p className="text-muted-foreground mt-0.5 text-sm">
             {isToday ? "Today · " : ""}
             {new Date(day.date).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
           </p>
@@ -371,12 +442,11 @@ export function DailyLog() {
           onClick={handleSave}
           disabled={saved}
           className={`inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-200 shadow-sm ${
-            saved
-              ? "bg-emerald-600 text-white shadow-emerald-200"
-              : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200"
+            saved ? "bg-primary text-primary-foreground" : "bg-primary hover:bg-primary/90 text-primary-foreground"
           }`}
         >
-          {saved ? "✓ Saved!" : "💾 Save Log"}
+          {saved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+          {saved ? "Saved!" : "Save Log"}
         </button>
       </div>
 
@@ -392,44 +462,39 @@ export function DailyLog() {
                 setViewedDayIndex(i);
                 setSaved(false);
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 border ${
                 isCurrentView
-                  ? "bg-indigo-600 text-white"
-                  : "bg-white text-slate-600 border border-slate-200 hover:border-indigo-200"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-card-foreground border-border hover:border-primary/40"
               }`}
             >
               {d.label.slice(0, 3)}
-              {hasLog && !isCurrentView && (
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              )}
+              {hasLog && !isCurrentView && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
             </button>
           );
         })}
       </div>
 
       {/* ── Progress Summary ── */}
-      <Card className="border-0 shadow-sm">
+      <Card className="border border-border shadow-sm">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-slate-700">Today's log progress</p>
-            <span className="text-sm font-bold text-indigo-600">{loggedMeals}/{totalMeals} logged</span>
+            <p className="text-sm font-semibold text-card-foreground">Today's log progress</p>
+            <span className="text-sm font-bold text-primary">{loggedMeals}/{totalMeals} logged</span>
           </div>
-          <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden mb-3">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-indigo-400 transition-all duration-500"
-              style={{ width: `${logProgress}%` }}
-            />
+          <div className="h-2.5 rounded-full bg-muted overflow-hidden mb-3">
+            <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${logProgress}%` }} />
           </div>
           <div className="grid grid-cols-4 gap-3">
             {[
-              { label: "Followed", value: followedMeals, color: "text-emerald-600", bg: "bg-emerald-50" },
-              { label: "Modified", value: modifiedMeals, color: "text-amber-600", bg: "bg-amber-50" },
-              { label: "Skipped", value: skippedMeals, color: "text-rose-600", bg: "bg-rose-50" },
-              { label: "Pending", value: totalMeals - loggedMeals, color: "text-slate-500", bg: "bg-slate-50" },
+              { label: "Followed", value: followedMeals, style: "bg-primary/10 text-primary" },
+              { label: "Modified", value: modifiedMeals, style: "bg-accent text-accent-foreground" },
+              { label: "Skipped", value: skippedMeals, style: "bg-destructive/10 text-destructive" },
+              { label: "Pending", value: totalMeals - loggedMeals, style: "bg-muted text-muted-foreground" },
             ].map((s) => (
-              <div key={s.label} className={`rounded-xl p-2.5 text-center ${s.bg}`}>
-                <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
-                <p className="text-[10px] text-slate-500 font-medium mt-0.5">{s.label}</p>
+              <div key={s.label} className={`rounded-xl p-2.5 text-center ${s.style.split(" ")[0]}`}>
+                <p className={`text-xl font-black ${s.style.split(" ")[1]}`}>{s.value}</p>
+                <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
@@ -437,30 +502,31 @@ export function DailyLog() {
       </Card>
 
       {/* ── Program context bar ── */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-        <span className="text-lg">📋</span>
+      <div className="flex items-center gap-3 px-4 py-3 bg-secondary border border-border rounded-xl text-sm">
+        <ClipboardList className="w-4 h-4 text-secondary-foreground flex-shrink-0" />
         <div>
-          <span className="font-semibold text-slate-700">{program.title}</span>
-          <span className="text-slate-400 mx-2">·</span>
-          <span className="text-slate-500">Week {program.currentWeek} · {day.isRestDay ? "Rest Day" : day.workout?.name ?? "Training Day"}</span>
+          <span className="font-semibold text-secondary-foreground">{program.title}</span>
+          <span className="text-muted-foreground mx-2">·</span>
+          <span className="text-muted-foreground">Week {program.currentWeek} · {day.isRestDay ? "Rest Day" : day.workout?.name ?? "Training Day"}</span>
         </div>
-        <a href="/my-plan" className="ml-auto text-indigo-600 text-xs font-semibold hover:underline whitespace-nowrap">
-          View plan →
+        <a href="/my-plan" className="ml-auto flex items-center gap-1 text-primary text-xs font-semibold hover:underline whitespace-nowrap">
+          View plan <ArrowRight className="w-3 h-3" />
         </a>
       </div>
 
       {/* ── Tabs ── */}
       {!day.isRestDay && (
-        <div className="flex gap-1 bg-slate-100 p-1 rounded-xl">
+        <div className="flex gap-1 bg-secondary p-1 rounded-xl">
           {(["meals", "workout"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-200 capitalize ${
-                activeTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 capitalize ${
+                activeTab === tab ? "bg-card text-card-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {tab === "meals" ? `🍽️ Meals` : `🏋️ Workout`}
+              {tab === "meals" ? <Utensils className="w-4 h-4" /> : <Dumbbell className="w-4 h-4" />}
+              {tab === "meals" ? "Meals" : "Workout"}
             </button>
           ))}
         </div>
@@ -469,9 +535,7 @@ export function DailyLog() {
       {/* ── Meals Log ── */}
       {(activeTab === "meals" || day.isRestDay) && (
         <div className="space-y-3">
-          {day.isRestDay && (
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Meals · Rest Day</p>
-          )}
+          {day.isRestDay && <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Meals · Rest Day</p>}
           {day.meals.map((meal, i) => {
             const key = getMealKey(meal, i, day.meals);
             const label = getMealLabel(meal, i, day.meals);
@@ -493,36 +557,39 @@ export function DailyLog() {
       {activeTab === "workout" && !day.isRestDay && (
         <div className="space-y-4">
           {day.workout ? (
-            <>
-              <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-xl">🏋️</div>
-                  <div>
-                    <p className="font-bold text-slate-800">{day.workout.name}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {day.workout.exercises.length} exercises · {day.workout.duration} · {day.workout.type}
-                    </p>
-                  </div>
-                  {workoutLog.status !== "pending" && (
-                    <div className="ml-auto">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                        workoutLog.status === "completed" ? "bg-emerald-100 text-emerald-700" :
-                        workoutLog.status === "modified" ? "bg-amber-100 text-amber-700" :
-                        "bg-rose-100 text-rose-700"
-                      }`}>
-                        {workoutLog.status === "completed" ? "✓ Completed" :
-                         workoutLog.status === "modified" ? "~ Modified" : "✗ Skipped"}
-                      </span>
-                    </div>
-                  )}
+            <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <WorkoutTypeIcon className="w-5 h-5 text-primary" />
                 </div>
-                <WorkoutLogSection day={day} log={workoutLog} onChange={setWorkoutLog} />
+                <div>
+                  <p className="font-bold text-card-foreground">{day.workout.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {day.workout.exercises.length} exercises · {day.workout.duration} · {day.workout.type}
+                  </p>
+                </div>
+                {workoutLog.status !== "pending" && (
+                  <div className="ml-auto">
+                    <span
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                        workoutLog.status === "completed"
+                          ? "bg-primary text-primary-foreground"
+                          : workoutLog.status === "modified"
+                          ? "bg-accent text-accent-foreground"
+                          : "bg-destructive text-destructive-foreground"
+                      }`}
+                    >
+                      {workoutLog.status === "completed" ? "Completed" : workoutLog.status === "modified" ? "Modified" : "Skipped"}
+                    </span>
+                  </div>
+                )}
               </div>
-            </>
+              <WorkoutLogSection day={day} log={workoutLog} onChange={setWorkoutLog} />
+            </div>
           ) : (
-            <div className="text-center py-12 text-slate-400">
-              <span className="text-4xl">🛌</span>
-              <p className="font-semibold text-slate-600 mt-3">Rest Day — No workout scheduled</p>
+            <div className="text-center py-12 text-muted-foreground">
+              <BedDouble className="w-10 h-10 mx-auto" />
+              <p className="font-semibold text-foreground mt-3">Rest Day — No workout scheduled</p>
             </div>
           )}
         </div>
@@ -530,10 +597,10 @@ export function DailyLog() {
 
       {/* ── Rest day note ── */}
       {day.isRestDay && (
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
-          <span className="text-2xl">🛌</span>
-          <p className="font-semibold text-slate-700 mt-2">Rest Day</p>
-          <p className="text-sm text-slate-500 mt-1">No workout to log. Focus on nutrition and recovery.</p>
+        <div className="bg-secondary border border-border rounded-2xl p-4 text-center">
+          <BedDouble className="w-6 h-6 text-secondary-foreground mx-auto" />
+          <p className="font-semibold text-foreground mt-2">Rest Day</p>
+          <p className="text-sm text-muted-foreground mt-1">No workout to log. Focus on nutrition and recovery.</p>
         </div>
       )}
 
@@ -542,13 +609,12 @@ export function DailyLog() {
         <button
           onClick={handleSave}
           disabled={saved}
-          className={`w-full py-3.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-sm ${
-            saved
-              ? "bg-emerald-600 text-white shadow-emerald-200"
-              : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200"
+          className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold transition-all duration-200 shadow-sm ${
+            saved ? "bg-primary text-primary-foreground" : "bg-primary hover:bg-primary/90 text-primary-foreground"
           }`}
         >
-          {saved ? "✅ Log saved successfully!" : "Save Today's Log"}
+          {saved ? <CheckCircle2 className="w-4 h-4" /> : null}
+          {saved ? "Log saved successfully!" : "Save Today's Log"}
         </button>
       </div>
     </div>
