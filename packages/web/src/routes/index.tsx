@@ -1,5 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { AdminRoute } from "./AdminRoute";
+import { AdminDashboard } from "../pages/admin/AdminDashboard";
+import { UsersList } from "../pages/admin/UsersList";
 import { AppLayout } from "../layouts/AppLayout";
 import { AuthLayout } from "../layouts/AuthLayout";
 import { GuestLayout } from "../layouts/GuestLayout";
@@ -16,6 +19,8 @@ import { DailyLog } from "../pages/daily-log/DailyLog";
 import { BrowsePrograms } from "../pages/programs/BrowsePrograms";
 import { ProgramDetail } from "../pages/programs/ProgramDetail";
 import { NotFound } from "../pages/NotFound";
+
+
 
 export const AppRoutes = () => (
   <Routes>
@@ -40,6 +45,9 @@ export const AppRoutes = () => (
         <Route path={ROUTES.programDetail()} element={<ProgramDetail />} />
       </Route>
     </Route>
+    
+    <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+    <Route path="/admin/users" element={<AdminRoute><UsersList /></AdminRoute>} />
 
     <Route path="*" element={<NotFound />} />
   </Routes>

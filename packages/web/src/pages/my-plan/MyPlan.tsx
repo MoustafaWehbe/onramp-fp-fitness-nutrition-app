@@ -1,22 +1,12 @@
-import { useState } from "react";
-import { activeProgram, todayLogs, type DayPlan, type Meal } from "../../mock-data/mockData";
+import { useState, useEffect } from "react";
+import { useActiveProgram } from "../../hooks/useProgram";
+import { useDayPlanDetail } from "../../hooks/useDayPlanDetail";
+import { useDayLogs } from "../../hooks/useDayLogs";
+import type { ApiDayPlanSummary, ApiDayPlanDetail, ApiMeal } from "../../lib/api-types";
 import { Card, CardContent } from "../../components/ui/card";
 import {
-  Sunrise,
-  Apple,
-  Salad,
-  Moon,
-  Utensils,
-  NotebookPen,
-  ChevronDown,
-  Dumbbell,
-  Activity,
-  Flower2,
-  BedDouble,
-  Flame,
-  Beef,
-  Wheat,
-  Droplet,
+  Sunrise, Apple, Salad, Moon, Utensils, NotebookPen, ChevronDown,
+  Dumbbell, Activity, Flower2, BedDouble, Flame, Beef, Wheat, Droplet,
   type LucideIcon,
 } from "lucide-react";
 
@@ -29,8 +19,6 @@ const MEAL_ICONS: Record<string, LucideIcon> = {
   dinner: Moon,
 };
 
-// Single muted style for every muscle group — relies on the gray scale rather
-// than an arbitrary rainbow, to stay inside the theme's palette.
 const MUSCLE_STYLE = "bg-secondary text-secondary-foreground border border-border";
 
 const WORKOUT_TYPE_STYLE: Record<string, { bg: string; text: string; border: string; icon: LucideIcon }> = {
@@ -39,55 +27,26 @@ const WORKOUT_TYPE_STYLE: Record<string, { bg: string; text: string; border: str
   Mobility: { bg: "bg-muted", text: "text-muted-foreground", border: "border-border", icon: Flower2 },
 };
 
-function getMealSnackLabel(meal: Meal, index: number, allMeals: Meal[]): string {
+function getMealSnackLabel(meal: ApiMeal, index: number, allMeals: ApiMeal[]): string {
   if (meal.type !== "snack") return meal.type.charAt(0).toUpperCase() + meal.type.slice(1);
   const snackIndex = allMeals.filter((m) => m.type === "snack").indexOf(meal);
   return `Snack ${snackIndex + 1}`;
 }
 
-function getDayLogStatus(dayPlan: DayPlan) {
-  const log = todayLogs[dayPlan.date];
-  if (!log) return { meals: 0, total: 0, workoutStatus: null };
-  const mealKeys = Object.keys(log.meals);
-  const followed = mealKeys.filter((k) => log.meals[k].followed).length;
-  return {
-    meals: followed,
-    total: mealKeys.length,
-    workoutStatus: log.workout?.status ?? null,
-  };
-}
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function ProgressRing({
-  value,
-  size = 56,
-  stroke = 4,
-  color = "hsl(var(--primary))",
-}: {
-  value: number;
-  size?: number;
-  stroke?: number;
-  color?: string;
-}) {
+  value, size = 56, stroke = 4, color = "hsl(var(--primary))",
+}: { value: number; size?: number; stroke?: number; color?: string }) {
   const r = (size - stroke * 2) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ - (value / 100) * circ;
   return (
     <svg width={size} height={size} className="-rotate-90">
       <circle cx={size / 2} cy={size / 2} r={r} stroke="hsl(var(--border))" strokeWidth={stroke} fill="none" />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        stroke={color}
-        strokeWidth={stroke}
-        fill="none"
-        strokeDasharray={circ}
-        strokeDashoffset={offset}
-        strokeLinecap="round"
-        style={{ transition: "stroke-dashoffset 0.6s ease" }}
-      />
+      <circle cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={stroke} fill="none"
+        strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+        style={{ transition: "stroke-dashoffset 0.6s ease" }} />
     </svg>
   );
 }
@@ -109,17 +68,21 @@ function MacroBar({ label, value, max, icon: Icon }: { label: string; value: num
   );
 }
 
-function DayNavButton({ day, selected, onClick }: { day: DayPlan; selected: boolean; onClick: () => void }) {
-  const logStatus = getDayLogStatus(day);
+// DayNavButton now receives log status from the parent (fetched via API)
+function DayNavButton({
+  day, selected, onClick, workoutStatus,
+}: {
+  day: ApiDayPlanSummary;
+  selected: boolean;
+  onClick: () => void;
+  workoutStatus: string | null;
+}) {
   const isToday = day.date === new Date().toISOString().slice(0, 10);
-
   return (
     <button
       onClick={onClick}
       className={`relative flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 min-w-[56px] border ${
-        selected
-          ? "bg-primary text-primary-foreground border-primary shadow-sm"
-          : "bg-card text-card-foreground border-border hover:bg-secondary"
+        selected ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-card text-card-foreground border-border hover:bg-secondary"
       }`}
     >
       <span className={`text-[10px] font-semibold uppercase tracking-wider ${selected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
@@ -130,9 +93,9 @@ function DayNavButton({ day, selected, onClick }: { day: DayPlan; selected: bool
       </span>
       {day.isRestDay ? (
         <span className={`text-[9px] font-medium ${selected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>Rest</span>
-      ) : logStatus.workoutStatus === "completed" ? (
+      ) : workoutStatus === "completed" ? (
         <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-      ) : logStatus.workoutStatus === "skipped" ? (
+      ) : workoutStatus === "skipped" ? (
         <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
       ) : (
         <span className={`w-1.5 h-1.5 rounded-full ${selected ? "bg-primary-foreground/50" : "bg-border"}`} />
@@ -144,7 +107,7 @@ function DayNavButton({ day, selected, onClick }: { day: DayPlan; selected: bool
   );
 }
 
-function MealCard({ meal, index, allMeals }: { meal: Meal; index: number; allMeals: Meal[] }) {
+function MealCard({ meal, index, allMeals }: { meal: ApiMeal; index: number; allMeals: ApiMeal[] }) {
   const [expanded, setExpanded] = useState(false);
   const label = getMealSnackLabel(meal, index, allMeals);
   const Icon = MEAL_ICONS[meal.type] ?? Utensils;
@@ -173,7 +136,6 @@ function MealCard({ meal, index, allMeals }: { meal: Meal; index: number; allMea
 
       {expanded && (
         <div className="border-t border-border px-4 pb-4 pt-3 space-y-4">
-          {/* Items */}
           <div className="space-y-2">
             {meal.items.map((item, i) => (
               <div key={i} className="flex items-center justify-between text-sm">
@@ -185,7 +147,6 @@ function MealCard({ meal, index, allMeals }: { meal: Meal; index: number; allMea
               </div>
             ))}
           </div>
-          {/* Macros */}
           <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border">
             <MacroBar label="Protein" value={meal.totalProtein} max={60} icon={Beef} />
             <MacroBar label="Carbs" value={meal.totalCarbs} max={80} icon={Wheat} />
@@ -197,7 +158,7 @@ function MealCard({ meal, index, allMeals }: { meal: Meal; index: number; allMea
   );
 }
 
-function WorkoutCard({ day }: { day: DayPlan }) {
+function WorkoutCard({ day }: { day: ApiDayPlanDetail }) {
   const [expanded, setExpanded] = useState(false);
   if (!day.workout) return null;
   const { workout } = day;
@@ -230,7 +191,7 @@ function WorkoutCard({ day }: { day: DayPlan }) {
         <div className="border-t border-border px-4 pb-4 pt-3">
           <div className="space-y-2">
             {workout.exercises.map((ex, i) => (
-              <div key={i} className="flex items-start justify-between gap-2 text-sm py-2 border-b border-border last:border-0">
+              <div key={ex.id} className="flex items-start justify-between gap-2 text-sm py-2 border-b border-border last:border-0">
                 <div className="flex items-start gap-2.5">
                   <span className="w-5 h-5 rounded-full bg-secondary text-secondary-foreground text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                     {i + 1}
@@ -259,20 +220,29 @@ function WorkoutCard({ day }: { day: DayPlan }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export function MyPlan() {
-  const [activeDay, setActiveDay] = useState(activeProgram.currentDay - 1);
+  const { program, dayPlans, isLoading: programLoading, error } = useActiveProgram();
+  const [activeDayIndex, setActiveDayIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<"meals" | "workout">("meals");
 
-  const program = activeProgram;
-  const day = program.weekPlan[activeDay];
+  // Once program loads, default to currentDay
+  useEffect(() => {
+    if (program) setActiveDayIndex(program.currentDay - 1);
+  }, [program]);
+
+  const activeDayPlanSummary = dayPlans[activeDayIndex];
+
+  // Fetch full detail for the selected day
+  const { dayPlan: day, isLoading: dayLoading } = useDayPlanDetail(
+    activeDayPlanSummary?.id ?? null
+  );
+
+  // Fetch logs for the selected day (for the dot indicators on DayNavButton)
+  const { workoutLog } = useDayLogs(activeDayPlanSummary?.id ?? null);
+
+  if (programLoading) return <p className="p-6 text-muted-foreground">Loading program...</p>;
+  if (error || !program) return <p className="p-6 text-destructive">Failed to load program.</p>;
+
   const progressPct = Math.round((program.completedDays / program.totalDays) * 100);
-
-  const totalDayCalories = day.meals.reduce((s, m) => s + m.totalCalories, 0);
-  const totalDayProtein = day.meals.reduce((s, m) => s + m.totalProtein, 0);
-  const totalDayCarbs = day.meals.reduce((s, m) => s + m.totalCarbs, 0);
-  const totalDayFat = day.meals.reduce((s, m) => s + m.totalFat, 0);
-
-  const logStatus = getDayLogStatus(day);
-  const mealAdherence = logStatus.total > 0 ? Math.round((logStatus.meals / logStatus.total) * 100) : null;
 
   return (
     <div className="space-y-6">
@@ -305,10 +275,7 @@ export function MyPlan() {
                   <span className="font-semibold text-primary-foreground">{progressPct}% · Day {program.completedDays}/{program.totalDays}</span>
                 </div>
                 <div className="h-2 rounded-full bg-primary-foreground/20 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-primary-foreground transition-all duration-700"
-                    style={{ width: `${progressPct}%` }}
-                  />
+                  <div className="h-full rounded-full bg-primary-foreground transition-all duration-700" style={{ width: `${progressPct}%` }} />
                 </div>
               </div>
             </div>
@@ -324,131 +291,126 @@ export function MyPlan() {
       </Card>
 
       {/* ── Day Selector ── */}
-      <div>
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-          {program.weekPlan.map((d, i) => (
-            <DayNavButton key={d.day} day={d} selected={i === activeDay} onClick={() => setActiveDay(i)} />
-          ))}
-        </div>
-      </div>
-
-      {/* ── Selected Day Header ── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-bold text-foreground">{day.label}</h3>
-          <p className="text-sm text-muted-foreground">
-            {new Date(day.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-          </p>
-        </div>
-        {day.isRestDay ? (
-          <span className="flex items-center gap-1.5 bg-secondary text-secondary-foreground text-sm font-semibold px-3 py-1.5 rounded-xl">
-            <BedDouble className="w-4 h-4" /> Rest Day
-          </span>
-        ) : logStatus.workoutStatus ? (
-          <span
-            className={`text-sm font-semibold px-3 py-1.5 rounded-xl ${
-              logStatus.workoutStatus === "completed"
-                ? "bg-primary text-primary-foreground"
-                : logStatus.workoutStatus === "skipped"
-                ? "bg-destructive text-destructive-foreground"
-                : "bg-accent text-accent-foreground"
-            }`}
-          >
-            {logStatus.workoutStatus === "completed" ? "Completed" : logStatus.workoutStatus === "skipped" ? "Skipped" : "Modified"}
-          </span>
-        ) : null}
-      </div>
-
-      {/* ── Day Summary Strip ── */}
-      <div className="grid grid-cols-4 gap-3">
-        {[
-          { label: "Calories", value: totalDayCalories, unit: "kcal", icon: Flame },
-          { label: "Protein", value: totalDayProtein, unit: "g", icon: Beef },
-          { label: "Carbs", value: totalDayCarbs, unit: "g", icon: Wheat },
-          { label: "Fat", value: totalDayFat, unit: "g", icon: Droplet },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-card border border-border rounded-2xl p-3 text-center shadow-sm">
-            <stat.icon className="w-4 h-4 text-primary mx-auto mb-1" />
-            <p className="text-lg font-black text-card-foreground">{stat.value}</p>
-            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">{stat.unit}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
-          </div>
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+        {dayPlans.map((d, i) => (
+          <DayNavButton
+            key={d.id}
+            day={d}
+            selected={i === activeDayIndex}
+            onClick={() => { setActiveDayIndex(i); setActiveTab("meals"); }}
+            workoutStatus={i === activeDayIndex ? (workoutLog?.status ?? null) : null}
+          />
         ))}
       </div>
 
-      {/* ── Logging Status Banner ── */}
-      {logStatus.total > 0 && (
-        <div
-          className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm border ${
-            mealAdherence === 100 ? "bg-primary/10 border-primary/20" : "bg-accent border-border"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <span className={`font-semibold ${mealAdherence === 100 ? "text-primary" : "text-accent-foreground"}`}>
-              {logStatus.meals}/{logStatus.total} meals logged · {mealAdherence}% adherence
-            </span>
+      {/* ── Day detail (loading state) ── */}
+      {dayLoading || !day ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="h-16 rounded-2xl bg-muted animate-pulse" />
+          ))}
+        </div>
+      ) : (
+        <>
+          {/* ── Selected Day Header ── */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-foreground">{day.label}</h3>
+              <p className="text-sm text-muted-foreground">
+                {new Date(day.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+              </p>
+            </div>
+            {day.isRestDay ? (
+              <span className="flex items-center gap-1.5 bg-secondary text-secondary-foreground text-sm font-semibold px-3 py-1.5 rounded-xl">
+                <BedDouble className="w-4 h-4" /> Rest Day
+              </span>
+            ) : workoutLog ? (
+              <span className={`text-sm font-semibold px-3 py-1.5 rounded-xl ${
+                workoutLog.status === "completed" ? "bg-primary text-primary-foreground"
+                : workoutLog.status === "skipped" ? "bg-destructive text-destructive-foreground"
+                : "bg-accent text-accent-foreground"
+              }`}>
+                {workoutLog.status === "completed" ? "Completed" : workoutLog.status === "skipped" ? "Skipped" : "Modified"}
+              </span>
+            ) : null}
           </div>
-          <a href="/daily-log" className={`text-xs font-semibold underline underline-offset-2 ${mealAdherence === 100 ? "text-primary" : "text-accent-foreground"}`}>
-            Update log →
-          </a>
-        </div>
-      )}
 
-      {/* ── Tabs: Meals / Workout ── */}
-      {!day.isRestDay && (
-        <div className="flex gap-1 bg-secondary p-1 rounded-xl">
-          {(["meals", "workout"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 capitalize ${
-                activeTab === tab ? "bg-card text-card-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab === "meals" ? <Utensils className="w-4 h-4" /> : <Dumbbell className="w-4 h-4" />}
-              {tab === "meals" ? `Meals (${day.meals.length})` : "Workout"}
-            </button>
-          ))}
-        </div>
-      )}
+          {/* ── Day Summary Strip ── */}
+          {(() => {
+            const totalDayCalories = day.meals.reduce((s, m) => s + m.totalCalories, 0);
+            const totalDayProtein = day.meals.reduce((s, m) => s + m.totalProtein, 0);
+            const totalDayCarbs = day.meals.reduce((s, m) => s + m.totalCarbs, 0);
+            const totalDayFat = day.meals.reduce((s, m) => s + m.totalFat, 0);
+            return (
+              <div className="grid grid-cols-4 gap-3">
+                {[
+                  { label: "Calories", value: totalDayCalories, unit: "kcal", icon: Flame },
+                  { label: "Protein", value: totalDayProtein, unit: "g", icon: Beef },
+                  { label: "Carbs", value: totalDayCarbs, unit: "g", icon: Wheat },
+                  { label: "Fat", value: totalDayFat, unit: "g", icon: Droplet },
+                ].map((stat) => (
+                  <div key={stat.label} className="bg-card border border-border rounded-2xl p-3 text-center shadow-sm">
+                    <stat.icon className="w-4 h-4 text-primary mx-auto mb-1" />
+                    <p className="text-lg font-black text-card-foreground">{stat.value}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">{stat.unit}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
-      {/* ── Meals Tab ── */}
-      {activeTab === "meals" && (
-        <div className="space-y-3">
-          {day.meals.map((meal, i) => (
-            <MealCard key={i} meal={meal} index={i} allMeals={day.meals} />
-          ))}
-        </div>
-      )}
-
-      {/* ── Workout Tab ── */}
-      {activeTab === "workout" && !day.isRestDay && (
-        <div className="space-y-3">
-          {day.workout ? (
-            <WorkoutCard day={day} />
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <BedDouble className="w-10 h-10 mx-auto mb-3" />
-              <p className="font-semibold text-foreground">Rest Day</p>
-              <p className="text-sm mt-1">No workout scheduled. Focus on recovery.</p>
+          {/* ── Tabs: Meals / Workout ── */}
+          {!day.isRestDay && (
+            <div className="flex gap-1 bg-secondary p-1 rounded-xl">
+              {(["meals", "workout"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 capitalize ${
+                    activeTab === tab ? "bg-card text-card-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab === "meals" ? <Utensils className="w-4 h-4" /> : <Dumbbell className="w-4 h-4" />}
+                  {tab === "meals" ? `Meals (${day.meals.length})` : "Workout"}
+                </button>
+              ))}
             </div>
           )}
-        </div>
-      )}
 
-      {/* Rest day content */}
-      {day.isRestDay && (
-        <div className="space-y-4">
-          <p className="text-sm font-semibold text-foreground">Meals</p>
-          {day.meals.map((meal, i) => (
-            <MealCard key={i} meal={meal} index={i} allMeals={day.meals} />
-          ))}
-          <div className="bg-secondary border border-border rounded-2xl p-5 text-center">
-            <BedDouble className="w-8 h-8 text-secondary-foreground mx-auto" />
-            <p className="font-semibold text-foreground mt-2">Active Rest Day</p>
-            <p className="text-sm text-muted-foreground mt-1">Light activity only — walk, stretch, recover. Let your muscles rebuild.</p>
-          </div>
-        </div>
+          {/* ── Meals Tab ── */}
+          {(activeTab === "meals" || day.isRestDay) && (
+            <div className="space-y-3">
+              {day.meals.map((meal, i) => (
+                <MealCard key={meal.id} meal={meal} index={i} allMeals={day.meals} />
+              ))}
+            </div>
+          )}
+
+          {/* ── Workout Tab ── */}
+          {activeTab === "workout" && !day.isRestDay && (
+            <div className="space-y-3">
+              {day.workout ? (
+                <WorkoutCard day={day} />
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <BedDouble className="w-10 h-10 mx-auto mb-3" />
+                  <p className="font-semibold text-foreground">Rest Day</p>
+                  <p className="text-sm mt-1">No workout scheduled. Focus on recovery.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Rest day content */}
+          {day.isRestDay && (
+            <div className="bg-secondary border border-border rounded-2xl p-5 text-center">
+              <BedDouble className="w-8 h-8 text-secondary-foreground mx-auto" />
+              <p className="font-semibold text-foreground mt-2">Active Rest Day</p>
+              <p className="text-sm text-muted-foreground mt-1">Light activity only — walk, stretch, recover.</p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

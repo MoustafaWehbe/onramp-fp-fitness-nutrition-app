@@ -1,0 +1,1 @@
+export { Workout, Exercise } from "@starter-kit/shared";

@@ -1,0 +1,1 @@
+export { Program } from "@starter-kit/shared";

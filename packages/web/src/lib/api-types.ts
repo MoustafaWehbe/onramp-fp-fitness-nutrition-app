@@ -361,3 +361,87 @@ export interface operations {
         };
     };
 }
+
+export type ApiDayPlanSummary = {
+  id: string;
+  dayNumber: number;
+  label: string;
+  date: string;
+  isRestDay: boolean;
+};
+
+export type ApiMealItem = {
+  id: string;
+  name: string;
+  quantity: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+};
+
+export type ApiMeal = {
+  id: string;
+  type: "breakfast" | "snack" | "lunch" | "dinner";
+  sortOrder: number;
+  time: string;
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  items: ApiMealItem[];
+};
+
+export type ApiExercise = {
+  id: string;
+  name: string;
+  sets: number;
+  reps: string;
+  rest: string;
+  muscle: string;
+  notes: string | null;
+};
+
+export type ApiWorkout = {
+  id: string;
+  name: string;
+  type: string;
+  duration: string;
+  exercises: ApiExercise[];
+} | null;
+
+export type ApiDayPlanDetail = ApiDayPlanSummary & {
+  meals: ApiMeal[];
+  workout: ApiWorkout;
+};
+
+export type ApiProgram = {
+  id: string;
+  title: string;
+  goal: string;
+  duration: string;
+  weeks: number;
+  level: string;
+  calories: number;
+  startDate: string;
+  currentWeek: number;
+  currentDay: number;
+  completedDays: number;
+  totalDays: number;
+  adherenceRate: number;
+};
+
+export type ApiMealLog = {
+  id: string;
+  mealId: string;
+  status: "pending" | "followed" | "modified" | "skipped";
+  note: string | null;
+  actualCalories: number | null;
+};
+
+export type ApiWorkoutLog = {
+  id: string;
+  workoutId: string;
+  status: "pending" | "completed" | "skipped" | "modified";
+  note: string | null;
+};
