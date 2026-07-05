@@ -1,0 +1,1 @@
+export { Meal, MealItem } from "@starter-kit/shared";
