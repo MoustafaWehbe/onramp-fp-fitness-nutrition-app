@@ -38,7 +38,7 @@ export const Register = () => {
     try {
       setError(null);
       await registerUser(data.email, data.password, data.name);
-      navigate(ROUTES.login);
+      navigate(ROUTES.onboarding);
     } catch {
       setError("Registration failed. That email may already be in use.");
     }
