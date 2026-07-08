@@ -285,7 +285,7 @@ function WorkoutLogSection({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export function DailyLog() {
-  const { program, dayPlans, isLoading: programLoading } = useActiveProgram();
+  const { program, dayPlans, isLoading: programLoading, error: programError } = useActiveProgram();
   const [viewedDayIndex, setViewedDayIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<"meals" | "workout">("meals");
   const [saved, setSaved] = useState(false);
@@ -297,10 +297,10 @@ export function DailyLog() {
   }, [program]);
 
   const activeDayPlanSummary = dayPlans[viewedDayIndex];
-  const { dayPlan: day, isLoading: dayLoading } = useDayPlanDetail(activeDayPlanSummary?.id ?? null);
+  const { dayPlan: day, isLoading: dayLoading, error: dayError } = useDayPlanDetail(activeDayPlanSummary?.id ?? null);
 
   // Load existing logs from DB
-  const { mealLogs: existingMealLogs, workoutLog: existingWorkoutLog, completedExerciseIds: existingCompletedIds }
+  const { mealLogs: existingMealLogs, workoutLog: existingWorkoutLog, completedExerciseIds: existingCompletedIds, error: logsError }
     = useDayLogs(activeDayPlanSummary?.id ?? null);
 
   // ── Local log state (initialized from DB, edited in-memory until Save) ──
@@ -382,7 +382,15 @@ export function DailyLog() {
   const loggedMeals   = followedMeals + modifiedMeals + skippedMeals;
   const logProgress   = totalMeals > 0 ? Math.round((loggedMeals / totalMeals) * 100) : 0;
 
-  if (programLoading || !program) return <p className="p-6 text-muted-foreground">Loading...</p>;
+  if (programLoading) return <p className="p-6 text-muted-foreground">Loading...</p>;
+
+  if (programError || !program) {
+    return (
+      <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive">
+        {programError ?? "No active program was found. Please choose a plan before logging your day."}
+      </div>
+    );
+  }
 
   const WorkoutTypeIcon = day?.workout ? WORKOUT_TYPE_ICON[day.workout.type] ?? Dumbbell : Dumbbell;
   const isToday = activeDayPlanSummary?.date === dayPlans[program.currentDay - 1]?.date;
@@ -465,7 +473,11 @@ export function DailyLog() {
       </div>
 
       {/* ── Loading skeleton ── */}
-      {dayLoading || !day ? (
+      {dayError || logsError ? (
+        <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive">
+          {dayError ?? logsError}
+        </div>
+      ) : dayLoading || !day ? (
         <div className="space-y-3">
           {[1, 2, 3].map((n) => <div key={n} className="h-16 rounded-2xl bg-muted animate-pulse" />)}
         </div>

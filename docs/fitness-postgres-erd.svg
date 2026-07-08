@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1660" viewBox="0 0 1500 1660">
+  <defs>
+    <linearGradient id="pageBg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#eef7ff"/>
+      <stop offset="55%" stop-color="#f8fbff"/>
+      <stop offset="100%" stop-color="#f4edff"/>
+    </linearGradient>
+    <linearGradient id="hero" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#071326"/>
+      <stop offset="58%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#3b1768"/>
+    </linearGradient>
+    <linearGradient id="tableHead" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#172033" flood-opacity="0.16"/>
+    </filter>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    </marker>
+    <style>
+      .hero-title { font: 800 36px Inter, Segoe UI, Arial, sans-serif; fill: #fff; }
+      .hero-sub { font: 500 15px Inter, Segoe UI, Arial, sans-serif; fill: #cbd5e1; }
+      .table-card { fill: rgba(255,255,255,.94); filter: url(#shadow); stroke: rgba(203,213,225,.8); stroke-width: 1; }
+      .table-head { fill: url(#tableHead); }
+      .table-name { font: 800 16px Inter, Segoe UI, Arial, sans-serif; fill: #fff; }
+      .table-count { font: 700 11px Inter, Segoe UI, Arial, sans-serif; fill: #bfdbfe; }
+      .column { font: 500 11.5px Consolas, Cascadia Mono, monospace; fill: #0f172a; }
+      .pk-row { fill: #dbeafe; }
+      .fk-row { fill: #ede9fe; }
+      .odd-row { fill: rgba(248,250,252,.92); }
+      .even-row { fill: rgba(241,245,249,.78); }
+      .rel { fill: none; stroke: #475569; stroke-width: 2.2; stroke-dasharray: 7 6; opacity: .9; }
+      .rel-label-bg { fill: rgba(255,255,255,.86); stroke: rgba(148,163,184,.55); }
+      .rel-label { font: 700 9.5px Inter, Segoe UI, Arial, sans-serif; fill: #334155; }
+      .legend-title { font: 800 14px Inter, Segoe UI, Arial, sans-serif; fill: #0f172a; }
+      .legend-text { font: 600 12px Inter, Segoe UI, Arial, sans-serif; fill: #334155; }
+      .note { font: 600 13px Inter, Segoe UI, Arial, sans-serif; fill: #e2e8f0; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#pageBg)"/>
+  <circle cx="1320" cy="115" r="220" fill="#a855f7" opacity=".11"/>
+  <circle cx="110" cy="1515" r="200" fill="#38bdf8" opacity=".12"/>
+  <rect x="34" y="30" width="1432" height="124" rx="30" fill="url(#hero)" filter="url(#shadow)"/>
+  <text x="70" y="83" class="hero-title">FitCoach AI PostgreSQL ERD</text>
+  <text x="72" y="116" class="hero-sub">Real Sequelize/PostgreSQL schema: auth, active plans, logs, measurements, and AI chat history</text>
+
+  
+      <path d="M 1010 1226 C 830 1198, 630 713, 450 685" class="rel" marker-end="url(#arrow)"/>
+      <rect x="675" y="922.7" width="110" height="22" rx="11" class="rel-label-bg"/>
+      <text x="730" y="937.7" text-anchor="middle" class="rel-label">plan_id -> id</text>
+
+      <path d="M 1010 1203 C 830 1203, 590 280, 410 280" class="rel" marker-end="url(#arrow)"/>
+      <rect x="655" y="718.5" width="110" height="22" rx="11" class="rel-label-bg"/>
+      <text x="710" y="733.5" text-anchor="middle" class="rel-label">user_id -> id</text>
+
+      <path d="M 520 1203 C 460 1231, 470 252, 410 280" class="rel" marker-end="url(#arrow)"/>
+      <rect x="410" y="728.3" width="110" height="22" rx="11" class="rel-label-bg"/>
+      <text x="465" y="743.3" text-anchor="middle" class="rel-label">user_id -> id</text>
+
+      <path d="M 520 731 C 460 703, 510 713, 450 685" class="rel" marker-end="url(#arrow)"/>
+      <rect x="430" y="675.2" width="110" height="22" rx="11" class="rel-label-bg"/>
+      <text x="485" y="690.2" text-anchor="middle" class="rel-label">plan_id -> id</text>
+
+      <path d="M 520 708 C 460 708, 470 280, 410 280" class="rel" marker-end="url(#arrow)"/>
+      <rect x="410" y="471" width="110" height="22" rx="11" class="rel-label-bg"/>
+      <text x="465" y="486" text-anchor="middle" class="rel-label">user_id -> id</text>
+
+      <path d="M 60 1226 C 196.5 1254, 313.5 657, 450 685" class="rel" marker-end="url(#arrow)"/>
+      <rect x="200" y="942.3" width="110" height="22" rx="11" class="rel-label-bg"/>
+      <text x="255" y="957.3" text-anchor="middle" class="rel-label">plan_id -> id</text>
+
+      <path d="M 60 1203 C 182.5 1175, 287.5 308, 410 280" class="rel" marker-end="url(#arrow)"/>
+      <rect x="180" y="708.7" width="110" height="22" rx="11" class="rel-label-bg"/>
+      <text x="235" y="723.7" text-anchor="middle" class="rel-label">user_id -> id</text>
+
+      <path d="M 60 708 C 182.5 708, 287.5 280, 410 280" class="rel" marker-end="url(#arrow)"/>
+      <rect x="180" y="471" width="110" height="22" rx="11" class="rel-label-bg"/>
+      <text x="235" y="486" text-anchor="middle" class="rel-label">user_id -> id</text>
+
+      <path d="M 980 731 C 800 759, 630 657, 450 685" class="rel" marker-end="url(#arrow)"/>
+      <rect x="660" y="694.8" width="110" height="22" rx="11" class="rel-label-bg"/>
+      <text x="715" y="709.8" text-anchor="middle" class="rel-label">plan_id -> id</text>
+
+      <path d="M 980 708 C 800 680, 590 308, 410 280" class="rel" marker-end="url(#arrow)"/>
+      <rect x="640" y="461.2" width="110" height="22" rx="11" class="rel-label-bg"/>
+      <text x="695" y="476.2" text-anchor="middle" class="rel-label">user_id -> id</text>
+
+      <path d="M 900 326 C 840 326, 890 280, 830 280" class="rel" marker-end="url(#arrow)"/>
+      <rect x="810" y="280" width="110" height="22" rx="11" class="rel-label-bg"/>
+      <text x="865" y="295" text-anchor="middle" class="rel-label">session_id -> id</text>
+
+      <path d="M 900 303 C 728.5 331, 581.5 252, 410 280" class="rel" marker-end="url(#arrow)"/>
+      <rect x="600" y="278.3" width="110" height="22" rx="11" class="rel-label-bg"/>
+      <text x="655" y="293.3" text-anchor="middle" class="rel-label">user_id -> id</text>
+
+      <path d="M 480 303 C 420 275, 470 308, 410 280" class="rel" marker-end="url(#arrow)"/>
+      <rect x="390" y="258.7" width="110" height="22" rx="11" class="rel-label-bg"/>
+      <text x="445" y="273.7" text-anchor="middle" class="rel-label">user_id -> id</text>
+  
+      <g class="table">
+        <rect x="60" y="215" width="350" height="262" rx="22" class="table-card"/>
+        <rect x="60" y="215" width="350" height="46" rx="22" class="table-head"/>
+        <path d="M 60 239 L 60 261 L 410 261 L 410 239 Z" class="table-head"/>
+        <text x="82" y="245" class="table-name">users</text>
+        <text x="388" y="245" text-anchor="end" class="table-count">1 rows</text>
+        
+        <rect x="74" y="264" width="322" height="21" rx="7" class="pk-row"/>
+        <text x="87" y="280" class="column">[PK] id: uuid</text>
+
+        <rect x="74" y="287" width="322" height="21" rx="7" class="even-row"/>
+        <text x="87" y="303" class="column">email: varchar(255)</text>
+
+        <rect x="74" y="310" width="322" height="21" rx="7" class="odd-row"/>
+        <text x="87" y="326" class="column">password_hash: varchar(255)</text>
+
+        <rect x="74" y="333" width="322" height="21" rx="7" class="even-row"/>
+        <text x="87" y="349" class="column">name: varchar(255)</text>
+
+        <rect x="74" y="356" width="322" height="21" rx="7" class="odd-row"/>
+        <text x="87" y="372" class="column">role: enum_users_role</text>
+
+        <rect x="74" y="379" width="322" height="21" rx="7" class="even-row"/>
+        <text x="87" y="395" class="column">email_verified: boolean</text>
+
+        <rect x="74" y="402" width="322" height="21" rx="7" class="odd-row"/>
+        <text x="87" y="418" class="column">created_at: timestamptz</text>
+
+        <rect x="74" y="425" width="322" height="21" rx="7" class="even-row"/>
+        <text x="87" y="441" class="column">updated_at: timestamptz</text>
+      </g>
+
+      <g class="table">
+        <rect x="480" y="215" width="350" height="239" rx="22" class="table-card"/>
+        <rect x="480" y="215" width="350" height="46" rx="22" class="table-head"/>
+        <path d="M 480 239 L 480 261 L 830 261 L 830 239 Z" class="table-head"/>
+        <text x="502" y="245" class="table-name">sessions</text>
+        <text x="808" y="245" text-anchor="end" class="table-count">2 rows</text>
+        
+        <rect x="494" y="264" width="322" height="21" rx="7" class="pk-row"/>
+        <text x="507" y="280" class="column">[PK] id: uuid</text>
+
+        <rect x="494" y="287" width="322" height="21" rx="7" class="fk-row"/>
+        <text x="507" y="303" class="column">[FK] user_id: uuid</text>
+
+        <rect x="494" y="310" width="322" height="21" rx="7" class="odd-row"/>
+        <text x="507" y="326" class="column">user_agent: text ?</text>
+
+        <rect x="494" y="333" width="322" height="21" rx="7" class="even-row"/>
+        <text x="507" y="349" class="column">ip_address: varchar(45) ?</text>
+
+        <rect x="494" y="356" width="322" height="21" rx="7" class="odd-row"/>
+        <text x="507" y="372" class="column">expires_at: timestamptz</text>
+
+        <rect x="494" y="379" width="322" height="21" rx="7" class="even-row"/>
+        <text x="507" y="395" class="column">created_at: timestamptz</text>
+
+        <rect x="494" y="402" width="322" height="21" rx="7" class="odd-row"/>
+        <text x="507" y="418" class="column">updated_at: timestamptz</text>
+      </g>
+
+      <g class="table">
+        <rect x="900" y="215" width="390" height="262" rx="22" class="table-card"/>
+        <rect x="900" y="215" width="390" height="46" rx="22" class="table-head"/>
+        <path d="M 900 239 L 900 261 L 1290 261 L 1290 239 Z" class="table-head"/>
+        <text x="922" y="245" class="table-name">refresh_tokens</text>
+        <text x="1268" y="245" text-anchor="end" class="table-count">3 rows</text>
+        
+        <rect x="914" y="264" width="362" height="21" rx="7" class="pk-row"/>
+        <text x="927" y="280" class="column">[PK] id: uuid</text>
+
+        <rect x="914" y="287" width="362" height="21" rx="7" class="fk-row"/>
+        <text x="927" y="303" class="column">[FK] user_id: uuid</text>
+
+        <rect x="914" y="310" width="362" height="21" rx="7" class="fk-row"/>
+        <text x="927" y="326" class="column">[FK] session_id: uuid</text>
+
+        <rect x="914" y="333" width="362" height="21" rx="7" class="even-row"/>
+        <text x="927" y="349" class="column">token_hash: varchar(64)</text>
+
+        <rect x="914" y="356" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="927" y="372" class="column">expires_at: timestamptz</text>
+
+        <rect x="914" y="379" width="362" height="21" rx="7" class="even-row"/>
+        <text x="927" y="395" class="column">revoked_at: timestamptz ?</text>
+
+        <rect x="914" y="402" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="927" y="418" class="column">created_at: timestamptz</text>
+
+        <rect x="914" y="425" width="362" height="21" rx="7" class="even-row"/>
+        <text x="927" y="441" class="column">updated_at: timestamptz</text>
+      </g>
+
+      <g class="table">
+        <rect x="60" y="620" width="390" height="377" rx="22" class="table-card"/>
+        <rect x="60" y="620" width="390" height="46" rx="22" class="table-head"/>
+        <path d="M 60 644 L 60 666 L 450 666 L 450 644 Z" class="table-head"/>
+        <text x="82" y="650" class="table-name">fitness_plans</text>
+        <text x="428" y="650" text-anchor="end" class="table-count">1 rows</text>
+        
+        <rect x="74" y="669" width="362" height="21" rx="7" class="pk-row"/>
+        <text x="87" y="685" class="column">[PK] id: uuid</text>
+
+        <rect x="74" y="692" width="362" height="21" rx="7" class="fk-row"/>
+        <text x="87" y="708" class="column">[FK] user_id: uuid</text>
+
+        <rect x="74" y="715" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="87" y="731" class="column">slug: varchar(120)</text>
+
+        <rect x="74" y="738" width="362" height="21" rx="7" class="even-row"/>
+        <text x="87" y="754" class="column">name: varchar(255)</text>
+
+        <rect x="74" y="761" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="87" y="777" class="column">focus: text</text>
+
+        <rect x="74" y="784" width="362" height="21" rx="7" class="even-row"/>
+        <text x="87" y="800" class="column">calorie_target: integer</text>
+
+        <rect x="74" y="807" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="87" y="823" class="column">protein_target: integer</text>
+
+        <rect x="74" y="830" width="362" height="21" rx="7" class="even-row"/>
+        <text x="87" y="846" class="column">workout_target_per_week: integer</text>
+
+        <rect x="74" y="853" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="87" y="869" class="column">starts_on: date ?</text>
+
+        <rect x="74" y="876" width="362" height="21" rx="7" class="even-row"/>
+        <text x="87" y="892" class="column">ends_on: date ?</text>
+
+        <rect x="74" y="899" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="87" y="915" class="column">is_active: boolean</text>
+
+        <rect x="74" y="922" width="362" height="21" rx="7" class="even-row"/>
+        <text x="87" y="938" class="column">created_at: timestamptz</text>
+
+        <rect x="74" y="945" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="87" y="961" class="column">updated_at: timestamptz</text>
+      </g>
+
+      <g class="table">
+        <rect x="520" y="620" width="390" height="331" rx="22" class="table-card"/>
+        <rect x="520" y="620" width="390" height="46" rx="22" class="table-head"/>
+        <path d="M 520 644 L 520 666 L 910 666 L 910 644 Z" class="table-head"/>
+        <text x="542" y="650" class="table-name">fitness_daily_logs</text>
+        <text x="888" y="650" text-anchor="end" class="table-count">7 rows</text>
+        
+        <rect x="534" y="669" width="362" height="21" rx="7" class="pk-row"/>
+        <text x="547" y="685" class="column">[PK] id: uuid</text>
+
+        <rect x="534" y="692" width="362" height="21" rx="7" class="fk-row"/>
+        <text x="547" y="708" class="column">[FK] user_id: uuid</text>
+
+        <rect x="534" y="715" width="362" height="21" rx="7" class="fk-row"/>
+        <text x="547" y="731" class="column">[FK] plan_id: uuid</text>
+
+        <rect x="534" y="738" width="362" height="21" rx="7" class="even-row"/>
+        <text x="547" y="754" class="column">log_date: date</text>
+
+        <rect x="534" y="761" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="547" y="777" class="column">calories: integer</text>
+
+        <rect x="534" y="784" width="362" height="21" rx="7" class="even-row"/>
+        <text x="547" y="800" class="column">protein: integer</text>
+
+        <rect x="534" y="807" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="547" y="823" class="column">carbs: integer</text>
+
+        <rect x="534" y="830" width="362" height="21" rx="7" class="even-row"/>
+        <text x="547" y="846" class="column">fat: integer</text>
+
+        <rect x="534" y="853" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="547" y="869" class="column">note: text ?</text>
+
+        <rect x="534" y="876" width="362" height="21" rx="7" class="even-row"/>
+        <text x="547" y="892" class="column">created_at: timestamptz</text>
+
+        <rect x="534" y="899" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="547" y="915" class="column">updated_at: timestamptz</text>
+      </g>
+
+      <g class="table">
+        <rect x="980" y="620" width="390" height="285" rx="22" class="table-card"/>
+        <rect x="980" y="620" width="390" height="46" rx="22" class="table-head"/>
+        <path d="M 980 644 L 980 666 L 1370 666 L 1370 644 Z" class="table-head"/>
+        <text x="1002" y="650" class="table-name">fitness_workout_logs</text>
+        <text x="1348" y="650" text-anchor="end" class="table-count">16 rows</text>
+        
+        <rect x="994" y="669" width="362" height="21" rx="7" class="pk-row"/>
+        <text x="1007" y="685" class="column">[PK] id: uuid</text>
+
+        <rect x="994" y="692" width="362" height="21" rx="7" class="fk-row"/>
+        <text x="1007" y="708" class="column">[FK] user_id: uuid</text>
+
+        <rect x="994" y="715" width="362" height="21" rx="7" class="fk-row"/>
+        <text x="1007" y="731" class="column">[FK] plan_id: uuid</text>
+
+        <rect x="994" y="738" width="362" height="21" rx="7" class="even-row"/>
+        <text x="1007" y="754" class="column">log_date: date</text>
+
+        <rect x="994" y="761" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="1007" y="777" class="column">workout_name: varchar(255)</text>
+
+        <rect x="994" y="784" width="362" height="21" rx="7" class="even-row"/>
+        <text x="1007" y="800" class="column">completed: boolean</text>
+
+        <rect x="994" y="807" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="1007" y="823" class="column">duration_minutes: integer ?</text>
+
+        <rect x="994" y="830" width="362" height="21" rx="7" class="even-row"/>
+        <text x="1007" y="846" class="column">created_at: timestamptz</text>
+
+        <rect x="994" y="853" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="1007" y="869" class="column">updated_at: timestamptz</text>
+      </g>
+
+      <g class="table">
+        <rect x="60" y="1115" width="390" height="354" rx="22" class="table-card"/>
+        <rect x="60" y="1115" width="390" height="46" rx="22" class="table-head"/>
+        <path d="M 60 1139 L 60 1161 L 450 1161 L 450 1139 Z" class="table-head"/>
+        <text x="82" y="1145" class="table-name">fitness_meal_logs</text>
+        <text x="428" y="1145" text-anchor="end" class="table-count">4 rows</text>
+        
+        <rect x="74" y="1164" width="362" height="21" rx="7" class="pk-row"/>
+        <text x="87" y="1180" class="column">[PK] id: uuid</text>
+
+        <rect x="74" y="1187" width="362" height="21" rx="7" class="fk-row"/>
+        <text x="87" y="1203" class="column">[FK] user_id: uuid</text>
+
+        <rect x="74" y="1210" width="362" height="21" rx="7" class="fk-row"/>
+        <text x="87" y="1226" class="column">[FK] plan_id: uuid</text>
+
+        <rect x="74" y="1233" width="362" height="21" rx="7" class="even-row"/>
+        <text x="87" y="1249" class="column">log_date: date</text>
+
+        <rect x="74" y="1256" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="87" y="1272" class="column">meal_type: varchar(80)</text>
+
+        <rect x="74" y="1279" width="362" height="21" rx="7" class="even-row"/>
+        <text x="87" y="1295" class="column">calories: integer</text>
+
+        <rect x="74" y="1302" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="87" y="1318" class="column">protein: integer</text>
+
+        <rect x="74" y="1325" width="362" height="21" rx="7" class="even-row"/>
+        <text x="87" y="1341" class="column">carbs: integer</text>
+
+        <rect x="74" y="1348" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="87" y="1364" class="column">fat: integer</text>
+
+        <rect x="74" y="1371" width="362" height="21" rx="7" class="even-row"/>
+        <text x="87" y="1387" class="column">note: text ?</text>
+
+        <rect x="74" y="1394" width="362" height="21" rx="7" class="odd-row"/>
+        <text x="87" y="1410" class="column">created_at: timestamptz</text>
+
+        <rect x="74" y="1417" width="362" height="21" rx="7" class="even-row"/>
+        <text x="87" y="1433" class="column">updated_at: timestamptz</text>
+      </g>
+
+      <g class="table">
+        <rect x="520" y="1115" width="420" height="285" rx="22" class="table-card"/>
+        <rect x="520" y="1115" width="420" height="46" rx="22" class="table-head"/>
+        <path d="M 520 1139 L 520 1161 L 940 1161 L 940 1139 Z" class="table-head"/>
+        <text x="542" y="1145" class="table-name">fitness_body_measurements</text>
+        <text x="918" y="1145" text-anchor="end" class="table-count">4 rows</text>
+        
+        <rect x="534" y="1164" width="392" height="21" rx="7" class="pk-row"/>
+        <text x="547" y="1180" class="column">[PK] id: uuid</text>
+
+        <rect x="534" y="1187" width="392" height="21" rx="7" class="fk-row"/>
+        <text x="547" y="1203" class="column">[FK] user_id: uuid</text>
+
+        <rect x="534" y="1210" width="392" height="21" rx="7" class="odd-row"/>
+        <text x="547" y="1226" class="column">measured_on: date</text>
+
+        <rect x="534" y="1233" width="392" height="21" rx="7" class="even-row"/>
+        <text x="547" y="1249" class="column">weight: numeric(6,2)</text>
+
+        <rect x="534" y="1256" width="392" height="21" rx="7" class="odd-row"/>
+        <text x="547" y="1272" class="column">waist: numeric(6,2)</text>
+
+        <rect x="534" y="1279" width="392" height="21" rx="7" class="even-row"/>
+        <text x="547" y="1295" class="column">chest: numeric(6,2)</text>
+
+        <rect x="534" y="1302" width="392" height="21" rx="7" class="odd-row"/>
+        <text x="547" y="1318" class="column">hips: numeric(6,2)</text>
+
+        <rect x="534" y="1325" width="392" height="21" rx="7" class="even-row"/>
+        <text x="547" y="1341" class="column">created_at: timestamptz</text>
+
+        <rect x="534" y="1348" width="392" height="21" rx="7" class="odd-row"/>
+        <text x="547" y="1364" class="column">updated_at: timestamptz</text>
+      </g>
+
+      <g class="table">
+        <rect x="1010" y="1115" width="430" height="239" rx="22" class="table-card"/>
+        <rect x="1010" y="1115" width="430" height="46" rx="22" class="table-head"/>
+        <path d="M 1010 1139 L 1010 1161 L 1440 1161 L 1440 1139 Z" class="table-head"/>
+        <text x="1032" y="1145" class="table-name">fitness_ai_chat_messages</text>
+        <text x="1418" y="1145" text-anchor="end" class="table-count">1 rows</text>
+        
+        <rect x="1024" y="1164" width="402" height="21" rx="7" class="pk-row"/>
+        <text x="1037" y="1180" class="column">[PK] id: uuid</text>
+
+        <rect x="1024" y="1187" width="402" height="21" rx="7" class="fk-row"/>
+        <text x="1037" y="1203" class="column">[FK] user_id: uuid</text>
+
+        <rect x="1024" y="1210" width="402" height="21" rx="7" class="fk-row"/>
+        <text x="1037" y="1226" class="column">[FK] plan_id: uuid ?</text>
+
+        <rect x="1024" y="1233" width="402" height="21" rx="7" class="even-row"/>
+        <text x="1037" y="1249" class="column">role: enum(role)</text>
+
+        <rect x="1024" y="1256" width="402" height="21" rx="7" class="odd-row"/>
+        <text x="1037" y="1272" class="column">content: text</text>
+
+        <rect x="1024" y="1279" width="402" height="21" rx="7" class="even-row"/>
+        <text x="1037" y="1295" class="column">created_at: timestamptz</text>
+
+        <rect x="1024" y="1302" width="402" height="21" rx="7" class="odd-row"/>
+        <text x="1037" y="1318" class="column">updated_at: timestamptz</text>
+      </g>
+
+  <g class="legend">
+    <rect x="60" y="1535" width="1380" height="84" rx="24" fill="#ffffff" opacity=".9" filter="url(#shadow)"/>
+    <text x="88" y="1566" class="legend-title">Legend</text>
+    <rect x="170" y="1548" width="28" height="16" rx="5" class="pk-row"/><text x="206" y="1561" class="legend-text">PK primary key</text>
+    <rect x="335" y="1548" width="28" height="16" rx="5" class="fk-row"/><text x="371" y="1561" class="legend-text">FK foreign key</text>
+    <path d="M 520 1557 L 610 1557" class="rel" marker-end="url(#arrow)"/><text x="628" y="1561" class="legend-text">relationship line</text>
+    <text x="88" y="1594" class="legend-text">Generated from live PostgreSQL information_schema plus Sequelize migrations/models.</text>
+    <text x="982" y="1594" class="legend-text">DATABASE_URL: localhost:55432/starter_kit</text>
+  </g>
+
+  <rect x="930" y="70" width="500" height="52" rx="18" fill="rgba(255,255,255,.10)" stroke="rgba(255,255,255,.16)"/>
+  <text x="956" y="92" class="note">Progress: plans + daily/workout/meal logs + measurements</text>
+  <text x="956" y="114" class="note">AI Assistant: active plan + recent logs + chat messages</text>
+</svg>

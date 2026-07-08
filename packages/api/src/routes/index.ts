@@ -2,13 +2,15 @@ import { Router } from "express";
 import { authRouter } from "./auth.routes";
 import { programRouter } from "./program.routes";
 import { dayPlanRouter } from "./dayPlan.routes";
-import { adminRouter } from "./admin.routes";     
+import { adminRouter } from "./admin.routes";
+import { fitnessRouter } from "./fitness.routes";
 
 const router = Router();
 
 router.use("/auth", authRouter);
 router.use("/programs", programRouter);
 router.use("/day-plans", dayPlanRouter);
-router.use("/admin", adminRouter);                 
+router.use("/admin", adminRouter);
+router.use("/fitness", fitnessRouter);
 
 export { router };

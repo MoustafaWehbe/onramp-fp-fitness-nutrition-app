@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import crypto from "node:crypto";
 import type { JwtPayload, TokenPair } from "./types";
 
 function getSecret(envKey: string, fallback: string): string {
@@ -18,7 +19,10 @@ export function signAccessToken(payload: JwtPayload): string {
 export function signRefreshToken(payload: Pick<JwtPayload, "userId">): string {
   const secret = getSecret("JWT_REFRESH_SECRET", "dev-refresh-secret");
   const expiresIn = process.env.JWT_REFRESH_EXPIRES_IN ?? "7d";
-  return jwt.sign(payload, secret, { expiresIn } as jwt.SignOptions);
+  return jwt.sign(payload, secret, {
+    expiresIn,
+    jwtid: crypto.randomUUID(),
+  } as jwt.SignOptions);
 }
 
 export function verifyAccessToken(token: string): JwtPayload {
