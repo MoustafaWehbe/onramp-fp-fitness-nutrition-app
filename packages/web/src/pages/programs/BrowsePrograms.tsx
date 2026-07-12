@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
-import { SearchX } from "lucide-react";
-import { PROGRAMS } from "../../mocks/programs";
-import { activeProgram } from "../../mock-data/mockData";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2, SearchX } from "lucide-react";
+import { apiClient } from "../../lib/api-client";
+import type { Program } from "../../mocks/types";
 import { usePreferences } from "../../hooks/usePreferences";
 import { ProgramPlanCard } from "./ProgramPlanCard";
 import { ProgramFilters, type ProgramFilterState } from "./ProgramFilters";
@@ -20,9 +20,33 @@ export const BrowsePrograms = () => {
     level: preferences.level ?? "all",
   }));
 
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+    apiClient
+      .get<{ data: Program[] }>("/programs")
+      .then(({ data }) => {
+        if (!cancelled) setPrograms(data.data);
+      })
+      .catch(() => {
+        if (!cancelled) setError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const results = useMemo(() => {
     const q = filters.search.trim().toLowerCase();
-    return PROGRAMS.filter((p) => {
+    return programs.filter((p) => {
       const matchesQuery =
         !q ||
         p.title.toLowerCase().includes(q) ||
@@ -32,7 +56,7 @@ export const BrowsePrograms = () => {
       const matchesLevel = filters.level === "all" || p.level === filters.level;
       return matchesQuery && matchesGoal && matchesLevel;
     });
-  }, [filters]);
+  }, [filters, programs]);
 
   const hasFilters =
     filters.search !== "" || filters.goal !== "all" || filters.level !== "all";
@@ -52,41 +76,56 @@ export const BrowsePrograms = () => {
 
       <ProgramFilters value={filters} onChange={setFilters} />
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>
-          {results.length} program{results.length === 1 ? "" : "s"}
-        </span>
-        {hasFilters && (
-          <button
-            onClick={() => setFilters(initialFilters)}
-            className="font-medium text-foreground hover:text-primary"
-          >
-            Clear filters
-          </button>
-        )}
-      </div>
-
-      {results.length > 0 ? (
-        <div className="grid items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-3">
-          {results.map((p) => (
-            <ProgramPlanCard
-              key={p.id}
-              program={p}
-              active={p.title === activeProgram.title}
-            />
-          ))}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-20 text-center text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <p className="text-sm">Loading programs…</p>
         </div>
-      ) : (
+      ) : error ? (
         <div className="flex flex-col items-center justify-center gap-3 border border-dashed border-border py-20 text-center">
           <SearchX className="h-10 w-10 text-muted-foreground" />
           <p className="font-heading text-lg font-bold uppercase">
-            No programs found
+            Couldn't load programs
           </p>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Try a different search term or clear your filters to see the full
-            catalog.
+            Something went wrong fetching the catalog. Please try again.
           </p>
         </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>
+              {results.length} program{results.length === 1 ? "" : "s"}
+            </span>
+            {hasFilters && (
+              <button
+                onClick={() => setFilters(initialFilters)}
+                className="font-medium text-foreground hover:text-primary"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+
+          {results.length > 0 ? (
+            <div className="grid items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {results.map((p) => (
+                <ProgramPlanCard key={p.id} program={p} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-3 border border-dashed border-border py-20 text-center">
+              <SearchX className="h-10 w-10 text-muted-foreground" />
+              <p className="font-heading text-lg font-bold uppercase">
+                No programs found
+              </p>
+              <p className="max-w-sm text-sm text-muted-foreground">
+                Try a different search term or clear your filters to see the full
+                catalog.
+              </p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

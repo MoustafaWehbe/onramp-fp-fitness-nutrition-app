@@ -1,8 +1,28 @@
 import { Model, DataTypes, type Sequelize, type Optional } from "sequelize";
 
+export interface ProgramMacros {
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface ProgramSampleWorkoutDay {
+  day: string;
+  title: string;
+  focus: string;
+  durationMin: number;
+  rest: boolean;
+}
+
+export interface ProgramSampleMeal {
+  name: string;
+  items: string;
+  calories: number;
+}
+
 export interface ProgramAttributes {
   id: string;
-  userId: string;
+  userId: string | null;
   title: string;
   goal: string;
   duration: string;
@@ -11,12 +31,26 @@ export interface ProgramAttributes {
   calories: number;
   color: string | null;
   accent: string | null;
-  startDate: string;
+  startDate: string | null;
   currentWeek: number;
   currentDay: number;
   completedDays: number;
-  totalDays: number;
+  totalDays: number | null;
   adherenceRate: number;
+  // Catalog / marketing fields (populated for browsable template rows).
+  isCatalog: boolean;
+  slug: string | null;
+  tagline: string | null;
+  description: string | null;
+  daysPerWeek: number | null;
+  macros: ProgramMacros | null;
+  focus: string[] | null;
+  equipment: string | null;
+  image: string | null;
+  rating: number | null;
+  enrolled: number | null;
+  sampleWeek: ProgramSampleWorkoutDay[] | null;
+  sampleMeals: ProgramSampleMeal[] | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -24,7 +58,29 @@ export interface ProgramAttributes {
 export interface ProgramCreationAttributes
   extends Optional<
     ProgramAttributes,
-    "id" | "currentWeek" | "currentDay" | "completedDays" | "adherenceRate"
+    | "id"
+    | "userId"
+    | "startDate"
+    | "totalDays"
+    | "currentWeek"
+    | "currentDay"
+    | "completedDays"
+    | "adherenceRate"
+    | "isCatalog"
+    | "slug"
+    | "tagline"
+    | "description"
+    | "daysPerWeek"
+    | "macros"
+    | "focus"
+    | "equipment"
+    | "image"
+    | "rating"
+    | "enrolled"
+    | "sampleWeek"
+    | "sampleMeals"
+    | "color"
+    | "accent"
   > {}
 
 export class Program
@@ -32,7 +88,7 @@ export class Program
   implements ProgramAttributes
 {
   declare id: string;
-  declare userId: string;
+  declare userId: string | null;
   declare title: string;
   declare goal: string;
   declare duration: string;
@@ -41,12 +97,25 @@ export class Program
   declare calories: number;
   declare color: string | null;
   declare accent: string | null;
-  declare startDate: string;
+  declare startDate: string | null;
   declare currentWeek: number;
   declare currentDay: number;
   declare completedDays: number;
-  declare totalDays: number;
+  declare totalDays: number | null;
   declare adherenceRate: number;
+  declare isCatalog: boolean;
+  declare slug: string | null;
+  declare tagline: string | null;
+  declare description: string | null;
+  declare daysPerWeek: number | null;
+  declare macros: ProgramMacros | null;
+  declare focus: string[] | null;
+  declare equipment: string | null;
+  declare image: string | null;
+  declare rating: number | null;
+  declare enrolled: number | null;
+  declare sampleWeek: ProgramSampleWorkoutDay[] | null;
+  declare sampleMeals: ProgramSampleMeal[] | null;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
@@ -58,7 +127,7 @@ export class Program
           defaultValue: DataTypes.UUIDV4,
           primaryKey: true,
         },
-        userId: { type: DataTypes.UUID, allowNull: false },
+        userId: { type: DataTypes.UUID, allowNull: true },
         title: { type: DataTypes.STRING, allowNull: false },
         goal: { type: DataTypes.STRING, allowNull: false },
         duration: { type: DataTypes.STRING, allowNull: false },
@@ -67,12 +136,25 @@ export class Program
         calories: { type: DataTypes.INTEGER, allowNull: false },
         color: { type: DataTypes.STRING, allowNull: true },
         accent: { type: DataTypes.STRING, allowNull: true },
-        startDate: { type: DataTypes.DATEONLY, allowNull: false },
+        startDate: { type: DataTypes.DATEONLY, allowNull: true },
         currentWeek: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
         currentDay: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
         completedDays: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
-        totalDays: { type: DataTypes.INTEGER, allowNull: false },
+        totalDays: { type: DataTypes.INTEGER, allowNull: true },
         adherenceRate: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+        isCatalog: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+        slug: { type: DataTypes.STRING, allowNull: true, unique: true },
+        tagline: { type: DataTypes.STRING, allowNull: true },
+        description: { type: DataTypes.TEXT, allowNull: true },
+        daysPerWeek: { type: DataTypes.INTEGER, allowNull: true },
+        macros: { type: DataTypes.JSONB, allowNull: true },
+        focus: { type: DataTypes.JSONB, allowNull: true },
+        equipment: { type: DataTypes.STRING, allowNull: true },
+        image: { type: DataTypes.TEXT, allowNull: true },
+        rating: { type: DataTypes.FLOAT, allowNull: true },
+        enrolled: { type: DataTypes.INTEGER, allowNull: true },
+        sampleWeek: { type: DataTypes.JSONB, allowNull: true },
+        sampleMeals: { type: DataTypes.JSONB, allowNull: true },
       },
       {
         sequelize,
