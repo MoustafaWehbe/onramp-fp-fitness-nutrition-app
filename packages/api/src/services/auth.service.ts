@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { OAuth2Client } from "google-auth-library";
 import {
   hashPassword,
   verifyPassword,
@@ -20,6 +21,14 @@ interface LoginInput {
   userAgent?: string;
   ipAddress?: string;
 }
+
+interface GoogleLoginInput {
+  credential: string;
+  userAgent?: string;
+  ipAddress?: string;
+}
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export class AuthService {
   async register(input: RegisterInput) {
@@ -44,15 +53,55 @@ export class AuthService {
       throw createError("Invalid credentials", 401);
     }
 
+    if (!user.passwordHash) {
+      // account was created via Google and has no password set
+      throw createError("Invalid credentials", 401);
+    }
+
     const valid = await verifyPassword(input.password, user.passwordHash);
     if (!valid) {
       throw createError("Invalid credentials", 401);
     }
 
+    return this.createSessionAndTokens(user, input.userAgent, input.ipAddress);
+  }
+
+  async loginWithGoogle(input: GoogleLoginInput) {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: input.credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload?.email) {
+      throw createError("Invalid Google token", 401);
+    }
+
+    let user = await User.findOne({ where: { email: payload.email } });
+    if (!user) {
+      user = await User.create({
+        email: payload.email,
+        name: payload.name ?? payload.email,
+        googleId: payload.sub,
+        emailVerified: true,
+      });
+    } else if (!user.googleId) {
+      // existing password account signing in with Google for the first time — link it
+      user.googleId = payload.sub;
+      await user.save();
+    }
+
+    return this.createSessionAndTokens(user, input.userAgent, input.ipAddress);
+  }
+
+  private async createSessionAndTokens(
+    user: User,
+    userAgent?: string,
+    ipAddress?: string,
+  ) {
     const session = await Session.create({
       userId: user.id,
-      userAgent: input.userAgent,
-      ipAddress: input.ipAddress,
+      userAgent,
+      ipAddress,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1_000), // 7 days
     });
 
