@@ -21,20 +21,13 @@ import {
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import {
-  getActivePlan,
-  getDailyLogs,
-  getMeasurements,
-  macroBreakdown as fallbackMacroBreakdown,
-  saveMeasurements,
-  weeklyNutrition as fallbackWeeklyNutrition,
-  weeklyWorkoutCompletion as fallbackWeeklyWorkoutCompletion,
   type DailyLog,
   type FitnessPlan,
   type MacroBreakdown,
   type MeasurementEntry,
   type WeeklyNutrition,
   type WeeklyWorkoutCompletion,
-} from "../../lib/fitness-mock-data";
+} from "../../lib/fitness-types";
 import {
   fetchFitnessSummary,
   saveFitnessMeasurement,
@@ -93,6 +86,14 @@ const emptyMeasurement: MeasurementEntry = {
   waist: 0,
   chest: 0,
   hips: 0,
+};
+const emptyPlan: FitnessPlan = {
+  id: "",
+  name: "No active program",
+  focus: "",
+  calorieTarget: 0,
+  proteinTarget: 0,
+  workoutTargetPerWeek: 0,
 };
 
 function clamp(value: number, min: number, max: number): number {
@@ -412,18 +413,13 @@ export function Progress() {
     "unavailable",
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [plan, setPlan] = useState<FitnessPlan>(() => getActivePlan());
-  const [logs, setLogs] = useState<DailyLog[]>(() => getDailyLogs());
-  const [nutritionData, setNutritionData] = useState<WeeklyNutrition[]>(
-    () => fallbackWeeklyNutrition,
-  );
-  const [workoutData, setWorkoutData] = useState<WeeklyWorkoutCompletion[]>(
-    () => fallbackWeeklyWorkoutCompletion,
-  );
-  const [macroData, setMacroData] = useState<MacroBreakdown[]>(
-    () => fallbackMacroBreakdown,
-  );
-  const [measurements, setMeasurements] = useState(() => getMeasurements());
+  const [progressError, setProgressError] = useState<string | null>(null);
+  const [plan, setPlan] = useState<FitnessPlan>(emptyPlan);
+  const [logs, setLogs] = useState<DailyLog[]>([]);
+  const [nutritionData, setNutritionData] = useState<WeeklyNutrition[]>([]);
+  const [workoutData, setWorkoutData] = useState<WeeklyWorkoutCompletion[]>([]);
+  const [macroData, setMacroData] = useState<MacroBreakdown[]>([]);
+  const [measurements, setMeasurements] = useState<MeasurementEntry[]>([]);
   const latestMeasurement = measurements[measurements.length - 1];
   const [form, setForm] = useState({
     weight: latestMeasurement?.weight.toString() ?? "",
@@ -446,8 +442,14 @@ export function Progress() {
         setMacroData(summary.macroBreakdown);
         setMeasurements(summary.measurements);
       })
-      .catch(() => {
-        // Keep the page usable for local demos only when the API/database is unavailable.
+      .catch((error) => {
+        if (cancelled) return;
+        setDataSource("unavailable");
+        setProgressError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load PostgreSQL-backed progress data.",
+        );
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -476,9 +478,19 @@ export function Progress() {
       logs.length > 0
         ? logs.reduce((sum, log) => sum + log.calories, 0) / logs.length
         : plan.calorieTarget;
-    const adherence = Math.round(
-      clamp(100 - (Math.abs(averageCalories - plan.calorieTarget) / plan.calorieTarget) * 100, 0, 100),
-    );
+    const adherence =
+      plan.calorieTarget > 0
+        ? Math.round(
+            clamp(
+              100 -
+                (Math.abs(averageCalories - plan.calorieTarget) /
+                  plan.calorieTarget) *
+                  100,
+              0,
+              100,
+            ),
+          )
+        : 0;
 
     return {
       currentStreak: getCurrentStreak(logs),
@@ -537,7 +549,7 @@ export function Progress() {
       detail:
         dataSource === "database"
           ? "Generated from shared database plan and logs"
-          : "Database unavailable; showing local demo data",
+          : (progressError ?? "Database-backed progress data is unavailable"),
       icon: Sparkles,
     },
   ];
@@ -547,6 +559,11 @@ export function Progress() {
   }
 
   function saveMeasurementEntry(): void {
+    if (dataSource !== "database") {
+      setProgressError("Connect the API and PostgreSQL before saving measurements.");
+      return;
+    }
+
     const fallbackMeasurement = latestMeasurement ?? emptyMeasurement;
     const nextEntry: MeasurementEntry = {
       date: "Today",
@@ -555,15 +572,23 @@ export function Progress() {
       chest: Number(form.chest) || fallbackMeasurement.chest,
       hips: Number(form.hips) || fallbackMeasurement.hips,
     };
-    const nextMeasurements = [...measurements.slice(-5), nextEntry];
-    setMeasurements(nextMeasurements);
-    saveMeasurements(nextMeasurements);
     void saveFitnessMeasurement({
       weight: nextEntry.weight,
       waist: nextEntry.waist,
       chest: nextEntry.chest,
       hips: nextEntry.hips,
-    }).then(setMeasurements).catch(() => undefined);
+    })
+      .then((nextMeasurements) => {
+        setProgressError(null);
+        setMeasurements(nextMeasurements);
+      })
+      .catch((error) => {
+        setProgressError(
+          error instanceof Error
+            ? error.message
+            : "Unable to save measurement to PostgreSQL.",
+        );
+      });
   }
 
   return (
@@ -583,7 +608,7 @@ export function Progress() {
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-sm text-sky-100 backdrop-blur">
                 <Target className="h-4 w-4" />
-                Active plan: {plan.name}
+                Active program: {plan.name}
               </div>
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1.5 text-xs font-medium text-cyan-100 backdrop-blur sm:ml-2">
                 <span className={`h-2 w-2 rounded-full ${dataSource === "database" ? "bg-emerald-300" : "bg-amber-300"} ${isLoading ? "animate-pulse" : ""}`} />
@@ -620,11 +645,15 @@ export function Progress() {
                 <div className="grid gap-3 rounded-3xl border border-white/10 bg-slate-950/45 p-4 backdrop-blur-xl sm:grid-cols-3">
                   <div>
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Calories target</p>
-                    <p className="mt-1 text-2xl font-semibold">{plan.calorieTarget}</p>
+                    <p className="mt-1 text-2xl font-semibold">
+                      {plan.calorieTarget || "-"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Protein target</p>
-                    <p className="mt-1 text-2xl font-semibold">{plan.proteinTarget}g</p>
+                    <p className="mt-1 text-2xl font-semibold">
+                      {plan.proteinTarget ? `${plan.proteinTarget}g` : "-"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Signal</p>
@@ -721,7 +750,7 @@ export function Progress() {
                 <div>
                   <CardTitle className="text-xl text-slate-950">Calories vs target</CardTitle>
                   <CardDescription className="mt-2 text-slate-500">
-                    Weekly average intake against {plan.calorieTarget} kcal/day
+                    Weekly average intake against {plan.calorieTarget || "-"} kcal/day
                   </CardDescription>
                 </div>
                 <div className="rounded-2xl bg-sky-100 p-3 text-sky-700">
@@ -793,7 +822,7 @@ export function Progress() {
             <CardHeader>
               <CardTitle className="text-xl text-slate-950">Body measurements</CardTitle>
               <CardDescription className="mt-2 text-slate-500">
-                Saved to PostgreSQL when available; local demo storage is used only without the API.
+                Saved directly to PostgreSQL for the active program context.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
@@ -813,6 +842,7 @@ export function Progress() {
                 <Button
                   type="button"
                   onClick={saveMeasurementEntry}
+                  disabled={dataSource !== "database"}
                   className="rounded-2xl bg-slate-950 px-5 text-white shadow-lg shadow-slate-950/20 hover:bg-slate-800"
                 >
                   <Activity className="mr-2 h-4 w-4" />
@@ -825,6 +855,11 @@ export function Progress() {
                   </span>
                 </div>
               </div>
+              {progressError && (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  {progressError}
+                </div>
+              )}
               <MeasurementTrend data={measurements} />
               <div className="flex flex-wrap gap-4 text-sm text-slate-500">
                 <span className="inline-flex items-center gap-2">

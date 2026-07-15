@@ -22,11 +22,9 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import {
-  getActivePlan,
-  getDailyLogs,
   type DailyLog,
   type FitnessPlan,
-} from "../../lib/fitness-mock-data";
+} from "../../lib/fitness-types";
 import {
   fetchFitnessSummary,
   sendFitnessChatMessage,
@@ -36,7 +34,6 @@ import { cn } from "../../lib/utils";
 
 type ChatMessage = FitnessChatMessage;
 
-const storageKey = "fitcoach.aiMessages";
 const panelClass =
   "border-white/60 bg-white/80 shadow-[0_24px_80px_-45px_rgba(30,41,59,0.55)] backdrop-blur-xl";
 const aiHeroImage =
@@ -103,17 +100,14 @@ const suggestedQuestions = [
   "What workout should I prioritize next?",
   "Summarize this week's progress.",
 ];
-
-function readStoredMessages(): ChatMessage[] | null {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const stored = window.localStorage.getItem(storageKey);
-    return stored ? (JSON.parse(stored) as ChatMessage[]) : null;
-  } catch {
-    return null;
-  }
-}
+const emptyPlan: FitnessPlan = {
+  id: "",
+  name: "No active program",
+  focus: "",
+  calorieTarget: 0,
+  proteinTarget: 0,
+  workoutTargetPerWeek: 0,
+};
 
 function average(values: number[]): number {
   if (values.length === 0) return 0;
@@ -142,21 +136,10 @@ export function AIAssistant() {
   const [isLoading, setIsLoading] = useState(true);
   const [isThinking, setIsThinking] = useState(false);
   const [assistantError, setAssistantError] = useState<string | null>(null);
-  const [plan, setPlan] = useState<FitnessPlan>(() => getActivePlan());
-  const [logs, setLogs] = useState<DailyLog[]>(() => getDailyLogs());
+  const [plan, setPlan] = useState<FitnessPlan>(emptyPlan);
+  const [logs, setLogs] = useState<DailyLog[]>([]);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    const stored = readStoredMessages();
-    return (
-      stored ?? [
-        {
-          id: "welcome",
-          role: "assistant",
-          content: `I am ready to coach from your ${plan.name} and recent daily logs. Ask about meals, workouts, adherence, or recovery.`,
-        },
-      ]
-    );
-  });
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -169,6 +152,14 @@ export function AIAssistant() {
         setLogs(summary.dailyLogs);
         if (summary.chatMessages.length > 0) {
           setMessages(summary.chatMessages);
+        } else {
+          setMessages([
+            {
+              id: "welcome",
+              role: "assistant",
+              content: `I am ready to coach from your ${summary.activePlan.name} and saved PostgreSQL logs. Ask about meals, workouts, adherence, or recovery.`,
+            },
+          ]);
         }
       })
       .catch((error) => {
@@ -227,13 +218,15 @@ export function AIAssistant() {
     ];
   }, [logs, plan.calorieTarget, plan.proteinTarget]);
 
-  useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify(messages));
-  }, [messages]);
-
   function sendMessage(text = input): void {
     const trimmed = text.trim();
     if (!trimmed) return;
+    if (dataSource !== "database") {
+      setAssistantError(
+        "The assistant needs the API and PostgreSQL context before it can answer.",
+      );
+      return;
+    }
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -500,7 +493,7 @@ export function AIAssistant() {
                     key={question}
                     type="button"
                     onClick={() => sendMessage(question)}
-                    disabled={isThinking}
+                    disabled={isThinking || dataSource !== "database"}
                     className="rounded-full border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-55"
                   >
                     {question}
@@ -517,11 +510,12 @@ export function AIAssistant() {
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 placeholder="Ask about your calories, macros, workouts, or recovery..."
+                disabled={dataSource !== "database"}
                 className="min-h-12 flex-1 rounded-2xl border-transparent bg-transparent px-4 shadow-none focus-visible:ring-indigo-300"
               />
               <Button
                 type="submit"
-                disabled={!input.trim() || isThinking}
+                disabled={!input.trim() || isThinking || dataSource !== "database"}
                 className="min-h-12 rounded-2xl bg-slate-950 px-5 text-white shadow-lg shadow-slate-950/20 hover:bg-slate-800"
               >
                 <Send className="mr-2 h-4 w-4" />

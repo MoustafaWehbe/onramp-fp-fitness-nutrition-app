@@ -6,7 +6,7 @@ import type {
   MeasurementEntry,
   WeeklyNutrition,
   WeeklyWorkoutCompletion,
-} from "./fitness-mock-data";
+} from "./fitness-types";
 
 export interface FitnessChatMessage {
   id: string;

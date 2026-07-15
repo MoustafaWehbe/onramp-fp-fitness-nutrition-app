@@ -11,10 +11,6 @@ import { Exercise } from "./Exercise";
 import { MealLog } from "./MealLog";
 import { WorkoutLog } from "./WorkoutLog";
 import { WorkoutLogExercise } from "./WorkoutLogExercise";
-import { FitnessPlan } from "./FitnessPlan";
-import { FitnessDailyLog } from "./FitnessDailyLog";
-import { FitnessWorkoutLog } from "./FitnessWorkoutLog";
-import { FitnessMealLog } from "./FitnessMealLog";
 import { FitnessBodyMeasurement } from "./FitnessBodyMeasurement";
 import { FitnessAiChatMessage } from "./FitnessAiChatMessage";
 
@@ -31,10 +27,6 @@ export {
   MealLog,
   WorkoutLog,
   WorkoutLogExercise,
-  FitnessPlan,
-  FitnessDailyLog,
-  FitnessWorkoutLog,
-  FitnessMealLog,
   FitnessBodyMeasurement,
   FitnessAiChatMessage,
 };
@@ -52,10 +44,6 @@ export function initModels(sequelize: Sequelize): void {
   MealLog.initModel(sequelize);
   WorkoutLog.initModel(sequelize);
   WorkoutLogExercise.initModel(sequelize);
-  FitnessPlan.initModel(sequelize);
-  FitnessDailyLog.initModel(sequelize);
-  FitnessWorkoutLog.initModel(sequelize);
-  FitnessMealLog.initModel(sequelize);
   FitnessBodyMeasurement.initModel(sequelize);
   FitnessAiChatMessage.initModel(sequelize);
 
@@ -111,42 +99,6 @@ export function initModels(sequelize: Sequelize): void {
     as: "exercise",
   });
 
-  User.hasMany(FitnessPlan, { foreignKey: "userId", as: "fitnessPlans" });
-  FitnessPlan.belongsTo(User, { foreignKey: "userId", as: "user" });
-
-  User.hasMany(FitnessDailyLog, {
-    foreignKey: "userId",
-    as: "fitnessDailyLogs",
-  });
-  FitnessPlan.hasMany(FitnessDailyLog, {
-    foreignKey: "planId",
-    as: "dailyLogs",
-  });
-  FitnessDailyLog.belongsTo(FitnessPlan, {
-    foreignKey: "planId",
-    as: "plan",
-  });
-
-  User.hasMany(FitnessWorkoutLog, {
-    foreignKey: "userId",
-    as: "fitnessWorkoutLogs",
-  });
-  FitnessPlan.hasMany(FitnessWorkoutLog, {
-    foreignKey: "planId",
-    as: "workoutLogs",
-  });
-  FitnessWorkoutLog.belongsTo(FitnessPlan, {
-    foreignKey: "planId",
-    as: "plan",
-  });
-
-  User.hasMany(FitnessMealLog, {
-    foreignKey: "userId",
-    as: "fitnessMealLogs",
-  });
-  FitnessPlan.hasMany(FitnessMealLog, { foreignKey: "planId", as: "mealLogs" });
-  FitnessMealLog.belongsTo(FitnessPlan, { foreignKey: "planId", as: "plan" });
-
   User.hasMany(FitnessBodyMeasurement, {
     foreignKey: "userId",
     as: "fitnessBodyMeasurements",
@@ -156,12 +108,12 @@ export function initModels(sequelize: Sequelize): void {
     foreignKey: "userId",
     as: "fitnessAiChatMessages",
   });
-  FitnessPlan.hasMany(FitnessAiChatMessage, {
-    foreignKey: "planId",
+  Program.hasMany(FitnessAiChatMessage, {
+    foreignKey: "programId",
     as: "aiChatMessages",
   });
-  FitnessAiChatMessage.belongsTo(FitnessPlan, {
-    foreignKey: "planId",
-    as: "plan",
+  FitnessAiChatMessage.belongsTo(Program, {
+    foreignKey: "programId",
+    as: "program",
   });
 }
