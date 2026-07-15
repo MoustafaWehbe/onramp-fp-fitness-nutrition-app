@@ -425,6 +425,7 @@ export class FitnessService {
         id: message.id,
         role: message.role,
         content: message.content,
+        createdAt: message.createdAt?.toISOString(),
       })),
     };
   }
@@ -544,11 +545,17 @@ export class FitnessService {
     ]);
 
     return [
-      { id: userMessage.id, role: userMessage.role, content: userMessage.content },
+      {
+        id: userMessage.id,
+        role: userMessage.role,
+        content: userMessage.content,
+        createdAt: userMessage.createdAt?.toISOString(),
+      },
       {
         id: assistantMessage.id,
         role: assistantMessage.role,
         content: assistantMessage.content,
+        createdAt: assistantMessage.createdAt?.toISOString(),
       },
     ];
   }

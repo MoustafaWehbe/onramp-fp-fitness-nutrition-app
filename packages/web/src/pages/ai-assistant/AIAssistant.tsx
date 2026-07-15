@@ -4,8 +4,10 @@ import {
   Bot,
   BrainCircuit,
   ClipboardCheck,
+  Clock,
   Dumbbell,
   MessageCircle,
+  RefreshCw,
   Send,
   Sparkles,
   Target,
@@ -36,8 +38,6 @@ type ChatMessage = FitnessChatMessage;
 
 const panelClass =
   "border-white/60 bg-white/80 shadow-[0_24px_80px_-45px_rgba(30,41,59,0.55)] backdrop-blur-xl";
-const aiHeroImage =
-  "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1200&q=82";
 const motionStyles = `
   @keyframes dev3-float {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
@@ -92,6 +92,13 @@ const motionStyles = `
     background: linear-gradient(90deg, transparent, rgba(125, 211, 252, .22), transparent);
     animation: dev3-scan 4.6s ease-in-out infinite;
   }
+  @media (prefers-reduced-motion: reduce) {
+    .dev3-float, .dev3-drift, .dev3-fade-up, .dev3-dot, .dev3-wave, .dev3-ring::before, .dev3-ring::after, .dev3-scan::after {
+      animation: none !important;
+      transform: none !important;
+    }
+    .dev3-card, .dev3-card:hover { transition: none !important; transform: none !important; }
+  }
 `;
 
 const suggestedQuestions = [
@@ -112,6 +119,39 @@ const emptyPlan: FitnessPlan = {
 function average(values: number[]): number {
   if (values.length === 0) return 0;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function formatChatTime(value?: string): string {
+  if (!value) return "now";
+  return new Date(value).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function AiContextIllustration() {
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(34,211,238,.28),transparent_28%),radial-gradient(circle_at_78%_18%,rgba(167,139,250,.30),transparent_34%)]" />
+      <svg viewBox="0 0 520 260" className="absolute inset-0 h-full w-full" role="img" aria-label="AI coaching context illustration">
+        <defs>
+          <linearGradient id="aiWire" x1="0" x2="1">
+            <stop offset="0%" stopColor="#67e8f9" />
+            <stop offset="100%" stopColor="#a78bfa" />
+          </linearGradient>
+        </defs>
+        <path d="M78 178 C142 80 232 218 306 118 C356 52 414 74 462 42" fill="none" stroke="url(#aiWire)" strokeWidth="7" strokeLinecap="round" opacity=".82" />
+        {[92, 206, 314, 438].map((x, index) => (
+          <g key={x} className="dev3-float" style={{ animationDelay: `${index * -1.2}s` }}>
+            <circle cx={x} cy={[170, 186, 116, 50][index]} r="28" fill="rgba(15,23,42,.48)" stroke="rgba(255,255,255,.18)" />
+            <circle cx={x} cy={[170, 186, 116, 50][index]} r="8" fill={index % 2 ? "#a78bfa" : "#67e8f9"} />
+          </g>
+        ))}
+        <rect x="286" y="146" width="152" height="62" rx="24" fill="rgba(255,255,255,.10)" stroke="rgba(255,255,255,.18)" />
+        <path d="M316 176 h78 M316 194 h48" stroke="rgba(255,255,255,.68)" strokeWidth="7" strokeLinecap="round" />
+      </svg>
+    </div>
+  );
 }
 
 function getApiErrorMessage(error: unknown): string {
@@ -141,9 +181,10 @@ export function AIAssistant() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-  useEffect(() => {
+  function loadAssistantContext(): () => void {
     let cancelled = false;
-
+    setIsLoading(true);
+    setAssistantError(null);
     fetchFitnessSummary()
       .then((summary) => {
         if (cancelled) return;
@@ -158,6 +199,7 @@ export function AIAssistant() {
               id: "welcome",
               role: "assistant",
               content: `I am ready to coach from your ${summary.activePlan.name} and saved PostgreSQL logs. Ask about meals, workouts, adherence, or recovery.`,
+              createdAt: new Date().toISOString(),
             },
           ]);
         }
@@ -174,6 +216,10 @@ export function AIAssistant() {
     return () => {
       cancelled = true;
     };
+  }
+
+  useEffect(() => {
+    return loadAssistantContext();
   }, []);
 
   const contextSummary = useMemo(() => {
@@ -232,6 +278,7 @@ export function AIAssistant() {
       id: `user-${Date.now()}`,
       role: "user",
       content: trimmed,
+      createdAt: new Date().toISOString(),
     };
 
     setMessages((current) => [...current, userMessage]);
@@ -295,13 +342,7 @@ export function AIAssistant() {
                 </p>
               </div>
               <div className="dev3-float relative min-h-52 overflow-hidden rounded-[1.65rem] border border-white/10 bg-white/10 shadow-[0_25px_80px_-42px_rgba(56,189,248,.9)] backdrop-blur-md [animation-duration:15s]">
-                <img
-                  src={aiHeroImage}
-                  alt="Fitness coaching session in a gym"
-                  className="absolute inset-0 h-full w-full object-cover"
-                  loading="eager"
-                  decoding="async"
-                />
+                <AiContextIllustration />
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-950/82 via-slate-950/42 to-cyan-950/28" />
                 <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/80 to-transparent" />
                 <div className="relative flex min-h-52 flex-col justify-between p-4">
@@ -389,6 +430,16 @@ export function AIAssistant() {
                     ? "Answers are saved to AI chat history and grounded in the shared project database."
                     : "The assistant needs the API and PostgreSQL connection before it can answer."}
               </div>
+              {assistantError && dataSource !== "database" && !isLoading && (
+                <button
+                  type="button"
+                  onClick={loadAssistantContext}
+                  className="inline-flex w-fit items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Retry context
+                </button>
+              )}
             </div>
           </div>
         </section>
@@ -444,6 +495,15 @@ export function AIAssistant() {
                       )}
                     >
                       {message.content}
+                      <div
+                        className={cn(
+                          "mt-2 flex items-center gap-1 text-[11px]",
+                          isUser ? "text-slate-300" : "text-slate-400",
+                        )}
+                      >
+                        <Clock className="h-3 w-3" />
+                        {formatChatTime(message.createdAt)}
+                      </div>
                     </div>
                     {isUser && (
                       <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/70 bg-white text-slate-700 shadow-sm">
