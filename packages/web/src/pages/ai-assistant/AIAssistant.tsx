@@ -25,7 +25,7 @@ import {
 } from "../../components/ui/card";
 import {
   type DailyLog,
-  type FitnessPlan,
+  type FitnessProgramSummary,
 } from "../../lib/fitness-types";
 import {
   fetchFitnessSummary,
@@ -107,7 +107,7 @@ const suggestedQuestions = [
   "What workout should I prioritize next?",
   "Summarize this week's progress.",
 ];
-const emptyPlan: FitnessPlan = {
+const emptyPlan: FitnessProgramSummary = {
   id: "",
   name: "No active program",
   focus: "",
@@ -176,7 +176,7 @@ export function AIAssistant() {
   const [isLoading, setIsLoading] = useState(true);
   const [isThinking, setIsThinking] = useState(false);
   const [assistantError, setAssistantError] = useState<string | null>(null);
-  const [plan, setPlan] = useState<FitnessPlan>(emptyPlan);
+  const [plan, setPlan] = useState<FitnessProgramSummary>(emptyPlan);
   const [logs, setLogs] = useState<DailyLog[]>([]);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);

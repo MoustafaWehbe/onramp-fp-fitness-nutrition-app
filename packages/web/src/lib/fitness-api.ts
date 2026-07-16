@@ -1,7 +1,7 @@
 import { apiClient } from "./api-client";
 import type {
   DailyLog,
-  FitnessPlan,
+  FitnessProgramSummary,
   MacroBreakdown,
   MeasurementEntry,
   WeeklyNutrition,
@@ -16,7 +16,7 @@ export interface FitnessChatMessage {
 }
 
 export interface FitnessSummary {
-  activePlan: FitnessPlan;
+  activePlan: FitnessProgramSummary;
   dailyLogs: DailyLog[];
   weeklyNutrition: WeeklyNutrition[];
   weeklyWorkoutCompletion: WeeklyWorkoutCompletion[];

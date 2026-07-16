@@ -2,11 +2,14 @@ import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { ROUTES } from "../../constants/routes";
-import { GOAL_ACCENTS, PROGRAM_STATS } from "../../constants/programs";
-import { GOAL_LABELS, LEVEL_LABELS, type Program } from "../../mocks/types";
+import { getGoalAccent, PROGRAM_STATS } from "../../constants/programs";
+import {
+  formatProgramLabel,
+  type ProgramCatalogItem,
+} from "../../lib/program-api";
 
 interface ProgramPlanCardProps {
-  program: Program;
+  program: ProgramCatalogItem;
   active?: boolean;
 }
 
@@ -28,17 +31,17 @@ export const ProgramPlanCard = ({
       <div
         className={cn(
           "h-1.5 w-full bg-gradient-to-r",
-          GOAL_ACCENTS[program.goal],
+          getGoalAccent(program.goal),
         )}
       />
 
       <div className="flex flex-1 flex-col p-6">
         <div className="flex items-center justify-between gap-2">
           <span className="bg-white/10 px-2.5 py-1 font-heading text-[11px] font-semibold uppercase tracking-wide text-white/80">
-            {GOAL_LABELS[program.goal]}
+            {formatProgramLabel(program.goal)}
           </span>
           <span className="font-heading text-[11px] font-medium uppercase tracking-wide text-white/40">
-            {LEVEL_LABELS[program.level]}
+            {formatProgramLabel(program.level)}
           </span>
         </div>
 
@@ -49,6 +52,17 @@ export const ProgramPlanCard = ({
         <p className="mt-3 flex-1 text-sm leading-relaxed text-white/70 line-clamp-3">
           {program.description}
         </p>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {program.focus.slice(0, 3).map((focus) => (
+            <span
+              key={focus}
+              className="border border-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white/50"
+            >
+              {formatProgramLabel(focus)}
+            </span>
+          ))}
+        </div>
 
         <div className="mt-6 grid grid-cols-3 divide-x divide-white/10 border border-white/10">
           {PROGRAM_STATS.map((s) => (

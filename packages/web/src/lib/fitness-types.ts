@@ -1,4 +1,4 @@
-export interface FitnessPlan {
+export interface FitnessProgramSummary {
   id: string;
   name: string;
   focus: string;

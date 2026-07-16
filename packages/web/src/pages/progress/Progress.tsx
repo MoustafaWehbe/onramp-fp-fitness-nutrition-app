@@ -23,7 +23,7 @@ import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import {
   type DailyLog,
-  type FitnessPlan,
+  type FitnessProgramSummary,
   type MacroBreakdown,
   type MeasurementEntry,
   type WeeklyNutrition,
@@ -91,7 +91,7 @@ const emptyMeasurement: MeasurementEntry = {
   chest: 0,
   hips: 0,
 };
-const emptyPlan: FitnessPlan = {
+const emptyPlan: FitnessProgramSummary = {
   id: "",
   name: "No active program",
   focus: "",
@@ -563,7 +563,7 @@ export function Progress() {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [progressError, setProgressError] = useState<string | null>(null);
-  const [plan, setPlan] = useState<FitnessPlan>(emptyPlan);
+  const [plan, setPlan] = useState<FitnessProgramSummary>(emptyPlan);
   const [logs, setLogs] = useState<DailyLog[]>([]);
   const [nutritionData, setNutritionData] = useState<WeeklyNutrition[]>([]);
   const [workoutData, setWorkoutData] = useState<WeeklyWorkoutCompletion[]>([]);

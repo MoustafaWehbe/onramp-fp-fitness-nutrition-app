@@ -3,7 +3,10 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface) {
-    await queryInterface.sequelize.query(`
+    await queryInterface.sequelize.transaction(async (transaction) => {
+      await queryInterface.sequelize.query(`
+      CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
       CREATE TABLE IF NOT EXISTS fitness_legacy_records (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         source_table TEXT NOT NULL,
@@ -180,7 +183,8 @@ module.exports = {
       DROP TABLE IF EXISTS fitness_workout_logs CASCADE;
       DROP TABLE IF EXISTS fitness_daily_logs CASCADE;
       DROP TABLE IF EXISTS fitness_plans CASCADE;
-    `);
+    `, { transaction });
+    });
   },
 
   async down() {
