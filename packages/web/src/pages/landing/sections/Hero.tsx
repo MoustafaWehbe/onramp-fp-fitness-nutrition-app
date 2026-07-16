@@ -75,7 +75,7 @@ export const Hero = () => (
         </span>
 
         <img
-          src="/public/images/gym-mascot.png"
+          src="/images/gym-mascot.png"
           alt="Your AI fitness coach mascot"
           className="relative z-10 w-full max-w-sm object-contain drop-shadow-2xl"
         />
