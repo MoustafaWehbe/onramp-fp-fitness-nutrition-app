@@ -61,7 +61,8 @@ export const GuestLayout = () => (
           </span>
         </div>
         <p className="text-sm">
-          © {new Date().getFullYear()} FitCoach AI. Built for the demo.
+          (c) {new Date().getFullYear()} FitCoach AI. Real coaching data,
+          thoughtfully presented.
         </p>
         <div className="flex gap-6 text-sm">
           {GUEST_FOOTER_LINKS.map((l) => (

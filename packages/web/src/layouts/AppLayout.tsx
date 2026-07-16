@@ -1,14 +1,15 @@
 import { Outlet } from "react-router-dom";
 import { Header } from "../components/layout/Header";
-import { Sidebar } from "../components/layout/Sidebar";
+import { MobileNav, Sidebar } from "../components/layout/Sidebar";
 
 export function AppLayout() {
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex min-h-screen bg-slate-100 text-slate-950 lg:h-screen lg:overflow-hidden">
       <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col lg:overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto p-6">
+        <MobileNav />
+        <main className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6">
           <Outlet />
         </main>
       </div>

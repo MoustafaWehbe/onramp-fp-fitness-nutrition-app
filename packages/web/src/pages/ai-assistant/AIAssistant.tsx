@@ -296,7 +296,7 @@ export function AIAssistant() {
   }
 
   return (
-    <div className="relative -m-6 min-h-[calc(100vh-3.5rem)] overflow-hidden bg-[radial-gradient(circle_at_12%_8%,rgba(56,189,248,0.22),transparent_30%),radial-gradient(circle_at_90%_18%,rgba(168,85,247,0.24),transparent_34%),linear-gradient(180deg,#f8fbff_0%,#eef4ff_50%,#f8fafc_100%)] p-4 text-slate-950 sm:p-6 lg:p-8">
+    <div className="relative -m-3 min-h-[calc(100vh-3.5rem)] overflow-hidden bg-[radial-gradient(circle_at_12%_8%,rgba(56,189,248,0.22),transparent_30%),radial-gradient(circle_at_90%_18%,rgba(168,85,247,0.24),transparent_34%),linear-gradient(180deg,#f8fbff_0%,#eef4ff_50%,#f8fafc_100%)] p-4 text-slate-950 sm:-m-5 sm:p-6 lg:-m-6 lg:p-8">
       <style>{motionStyles}</style>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-white/80 to-transparent" />
       <div className="dev3-float pointer-events-none absolute left-[-5rem] top-12 h-64 w-64 rounded-full bg-sky-300/25 blur-3xl" />

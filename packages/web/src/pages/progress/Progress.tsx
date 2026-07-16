@@ -721,13 +721,13 @@ export function Progress() {
       return;
     }
 
-    const fallbackMeasurement = latestMeasurement ?? emptyMeasurement;
+    const baselineMeasurement = latestMeasurement ?? emptyMeasurement;
     const nextEntry: MeasurementEntry = {
       date: "Today",
-      weight: Number(form.weight) || fallbackMeasurement.weight,
-      waist: Number(form.waist) || fallbackMeasurement.waist,
-      chest: Number(form.chest) || fallbackMeasurement.chest,
-      hips: Number(form.hips) || fallbackMeasurement.hips,
+      weight: Number(form.weight) || baselineMeasurement.weight,
+      waist: Number(form.waist) || baselineMeasurement.waist,
+      chest: Number(form.chest) || baselineMeasurement.chest,
+      hips: Number(form.hips) || baselineMeasurement.hips,
     };
     void saveFitnessMeasurement({
       weight: nextEntry.weight,
@@ -749,7 +749,7 @@ export function Progress() {
   }
 
   return (
-    <div className="relative -m-6 min-h-[calc(100vh-3.5rem)] overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.22),transparent_34%),radial-gradient(circle_at_82%_10%,rgba(168,85,247,0.22),transparent_30%),linear-gradient(180deg,#f8fbff_0%,#eef4ff_48%,#f8fafc_100%)] p-4 text-slate-950 sm:p-6 lg:p-8">
+    <div className="relative -m-3 min-h-[calc(100vh-3.5rem)] overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.22),transparent_34%),radial-gradient(circle_at_82%_10%,rgba(168,85,247,0.22),transparent_30%),linear-gradient(180deg,#f8fbff_0%,#eef4ff_48%,#f8fafc_100%)] p-4 text-slate-950 sm:-m-5 sm:p-6 lg:-m-6 lg:p-8">
       <style>{motionStyles}</style>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-white/70 to-transparent" />
       <div className="dev3-float pointer-events-none absolute left-[-5rem] top-20 h-56 w-56 rounded-full bg-cyan-300/25 blur-3xl" />

@@ -197,6 +197,94 @@ interface OpenRouterChatResponse {
   }>;
 }
 
+interface OpenRouterErrorPayload {
+  error?: {
+    message?: string;
+    code?: string | number;
+    type?: string;
+  };
+  message?: string;
+  code?: string | number;
+  type?: string;
+}
+
+function sanitizeProviderText(value: unknown): string {
+  if (typeof value !== "string") return "";
+  return value
+    .replace(/sk-or-v1-[A-Za-z0-9_-]+/g, "[redacted-openrouter-key]")
+    .slice(0, 360);
+}
+
+function describeNetworkFailure(error: unknown): string {
+  const record = error as {
+    name?: string;
+    message?: string;
+    code?: string;
+    cause?: { code?: string; message?: string };
+  };
+  const code = record.cause?.code ?? record.code ?? record.name ?? "unknown";
+  const rawMessage = sanitizeProviderText(record.cause?.message ?? record.message);
+
+  if (record.name === "AbortError") {
+    return "OpenRouter request timed out after 20 seconds.";
+  }
+  if (code === "ENOTFOUND" || code === "EAI_AGAIN") {
+    return `OpenRouter DNS lookup failed (code ${code}).`;
+  }
+  if (code === "ECONNREFUSED" || code === "ECONNRESET") {
+    return `OpenRouter HTTPS connection failed (code ${code}).`;
+  }
+  if (code === "ETIMEDOUT") {
+    return "OpenRouter HTTPS connection timed out.";
+  }
+  if (code === "EACCES" || code === "EPERM") {
+    return `OpenRouter HTTPS request was blocked by the environment (code ${code}).`;
+  }
+  if (String(code).includes("CERT") || rawMessage.toLowerCase().includes("certificate")) {
+    return `OpenRouter TLS validation failed (code ${code}).`;
+  }
+
+  return `OpenRouter network request failed (code ${code}${rawMessage ? `, ${rawMessage}` : ""}).`;
+}
+
+async function readOpenRouterError(response: Response): Promise<string> {
+  const raw = await response.text();
+  let payload: OpenRouterErrorPayload | null = null;
+
+  try {
+    payload = raw ? (JSON.parse(raw) as OpenRouterErrorPayload) : null;
+  } catch {
+    payload = null;
+  }
+
+  const providerError = payload?.error;
+  const code = providerError?.code ?? payload?.code ?? "none";
+  const type = providerError?.type ?? payload?.type ?? "none";
+  const message =
+    sanitizeProviderText(providerError?.message) ||
+    sanitizeProviderText(payload?.message) ||
+    sanitizeProviderText(raw) ||
+    "No provider message returned";
+
+  let action = "Please try again shortly.";
+  if (response.status === 401 || response.status === 403) {
+    action =
+      "The configured API key was rejected or lacks permission; rotate OPENROUTER_API_KEY locally and restart the API.";
+  } else if (response.status === 402) {
+    action = "The OpenRouter account appears to need credits or billing access.";
+  } else if (response.status === 404) {
+    action = "The configured OpenRouter model or provider is unavailable.";
+  } else if (response.status === 408 || response.status === 504) {
+    action = "The provider timed out; retry or choose another available model.";
+  } else if (response.status === 429) {
+    action = "The OpenRouter account is currently rate limited.";
+  } else if (response.status >= 500) {
+    action = "OpenRouter or the selected model provider returned a server error.";
+  }
+
+  return `OpenRouter request failed (status ${response.status}, code ${code}, type ${type}): ${message}. ${action}`;
+}
+
 function getOpenRouterConfig() {
   const apiKey = process.env.OPENROUTER_API_KEY?.trim();
   const model = process.env.OPENROUTER_MODEL?.trim() || "openai/gpt-4o-mini";
@@ -235,10 +323,13 @@ async function requestOpenRouterAnswer(
     content: message.content,
   }));
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20_000);
   let response: Response;
   try {
     response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
+      signal: controller.signal,
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
@@ -255,19 +346,17 @@ async function requestOpenRouterAnswer(
         ],
       }),
     });
-  } catch {
-    throw createError(
-      "OpenRouter could not be reached from this environment. Please check network access and try again.",
-      503,
-    );
+  } catch (error) {
+    throw createError(describeNetworkFailure(error), 503);
+  } finally {
+    clearTimeout(timeout);
   }
 
   if (!response.ok) {
-    const statusMessage =
-      response.status === 401 || response.status === 403
-        ? "OpenRouter rejected the configured API key. Check OPENROUTER_API_KEY in .env and restart the API."
-        : `OpenRouter request failed with status ${response.status}. Please try again shortly.`;
-    throw createError(statusMessage, response.status === 401 ? 502 : 503);
+    throw createError(
+      await readOpenRouterError(response),
+      response.status === 401 || response.status === 403 ? 502 : 503,
+    );
   }
 
   const payload = (await response.json()) as OpenRouterChatResponse;
