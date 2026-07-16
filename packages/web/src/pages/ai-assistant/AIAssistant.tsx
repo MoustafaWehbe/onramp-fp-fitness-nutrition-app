@@ -191,18 +191,7 @@ export function AIAssistant() {
         setDataSource("database");
         setPlan(summary.activePlan);
         setLogs(summary.dailyLogs);
-        if (summary.chatMessages.length > 0) {
-          setMessages(summary.chatMessages);
-        } else {
-          setMessages([
-            {
-              id: "welcome",
-              role: "assistant",
-              content: `I am ready to coach from your ${summary.activePlan.name} and saved PostgreSQL logs. Ask about meals, workouts, adherence, or recovery.`,
-              createdAt: new Date().toISOString(),
-            },
-          ]);
-        }
+        setMessages(summary.chatMessages);
       })
       .catch((error) => {
         if (cancelled) return;
@@ -470,6 +459,18 @@ export function AIAssistant() {
 
           <CardContent className="flex flex-1 flex-col gap-4 p-4 sm:p-5">
             <div className="min-h-[22rem] flex-1 space-y-4 overflow-y-auto rounded-[1.5rem] border border-white/70 bg-gradient-to-b from-white/80 to-slate-50/80 p-3 shadow-inner sm:p-4">
+              {!isLoading && messages.length === 0 && !isThinking && !assistantError && (
+                <div className="flex min-h-[18rem] flex-col items-center justify-center rounded-[1.25rem] border border-dashed border-slate-200 bg-white/70 px-6 text-center">
+                  <Bot className="h-10 w-10 text-indigo-500" />
+                  <p className="mt-3 font-heading text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    No chat history yet
+                  </p>
+                  <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
+                    Ask a question to create the first OpenRouter-backed
+                    assistant turn for this PostgreSQL program context.
+                  </p>
+                </div>
+              )}
               {messages.map((message) => {
                 const isUser = message.role === "user";
 

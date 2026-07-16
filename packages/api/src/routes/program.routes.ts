@@ -4,9 +4,9 @@ import { authenticate } from "../middleware/authenticate";
 
 const router = Router();
 
-router.get("/", authenticate, programController.getAll);
+router.get("/", programController.getAll);
 router.get("/active", authenticate, programController.getActive);
 router.get("/:programId/day-plans", authenticate, programController.getDayPlans);
-router.get("/:programId", authenticate, programController.getDetail);
+router.get("/:programId", programController.getDetail);
 
 export { router as programRouter };

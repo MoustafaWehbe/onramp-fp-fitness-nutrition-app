@@ -81,9 +81,9 @@ function formatProgram(program: ProgramWithWeekPlan) {
 }
 
 export const programService = {
-  async getPrograms(userId: string) {
+  async getPrograms(userId?: string) {
     const programs = await Program.findAll({
-      where: { userId },
+      where: userId ? { userId } : undefined,
       order: [["createdAt", "DESC"]],
       include: [
         {
@@ -128,9 +128,9 @@ export const programService = {
     return program;
   },
 
-  async getProgramDetail(userId: string, programId: string) {
+  async getProgramDetail(programId: string) {
     const program = await Program.findOne({
-      where: { id: programId, userId },
+      where: { id: programId },
       include: [
         {
           model: DayPlan,

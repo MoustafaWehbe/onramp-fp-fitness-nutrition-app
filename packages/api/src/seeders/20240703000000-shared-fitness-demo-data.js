@@ -23,29 +23,10 @@ module.exports = {
       updated_at: now,
     })));
 
-    const [programs] = await queryInterface.sequelize.query(
-      "SELECT id FROM programs WHERE user_id = :userId ORDER BY updated_at DESC LIMIT 1",
-      { replacements: { userId } },
-    );
-    const programId = programs[0]?.id ?? null;
-
-    await queryInterface.bulkInsert("fitness_ai_chat_messages", [
-      {
-        user_id: userId,
-        program_id: programId,
-        role: "assistant",
-        content:
-          "I am ready to coach from your active program and saved PostgreSQL logs. Ask about meals, workouts, adherence, or recovery.",
-        created_at: now,
-        updated_at: now,
-      },
-    ]);
+    // Chat history should be created only by real assistant endpoint calls.
   },
 
   async down(queryInterface) {
-    await queryInterface.bulkDelete("fitness_ai_chat_messages", {
-      user_id: userId,
-    });
     await queryInterface.bulkDelete("fitness_body_measurements", {
       user_id: userId,
     });

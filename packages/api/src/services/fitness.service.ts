@@ -235,24 +235,32 @@ async function requestOpenRouterAnswer(
     content: message.content,
   }));
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "X-Title": "FitCoach AI",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 500,
-      temperature: 0.5,
-      messages: [
-        { role: "system", content: buildSystemPrompt(context) },
-        ...recentMessages,
-        { role: "user", content: question },
-      ],
-    }),
-  });
+  let response: Response;
+  try {
+    response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "X-Title": "FitCoach AI",
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 500,
+        temperature: 0.5,
+        messages: [
+          { role: "system", content: buildSystemPrompt(context) },
+          ...recentMessages,
+          { role: "user", content: question },
+        ],
+      }),
+    });
+  } catch {
+    throw createError(
+      "OpenRouter could not be reached from this environment. Please check network access and try again.",
+      503,
+    );
+  }
 
   if (!response.ok) {
     const statusMessage =
