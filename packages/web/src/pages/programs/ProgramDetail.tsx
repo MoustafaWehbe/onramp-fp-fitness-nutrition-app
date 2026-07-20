@@ -1,15 +1,17 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   Calendar,
   Dumbbell,
   Flame,
+  Loader2,
   Star,
   Utensils,
 } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
-import { PROGRAMS } from "../../mocks/programs";
-import { GOAL_LABELS, LEVEL_LABELS } from "../../mocks/types";
+import { apiClient } from "../../lib/api-client";
+import { GOAL_LABELS, LEVEL_LABELS, type Program } from "../../mocks/types";
 import { Badge } from "../../components/ui/badge";
 import { buttonVariants } from "../../components/ui/button";
 import { cn } from "../../lib/utils";
@@ -17,7 +19,36 @@ import { NotFound } from "../NotFound";
 
 export const ProgramDetail = () => {
   const { slug } = useParams<{ slug: string }>();
-  const program = PROGRAMS.find((p) => p.slug === slug);
+  const [program, setProgram] = useState<Program | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!slug) return;
+    let cancelled = false;
+    setLoading(true);
+    apiClient
+      .get<{ data: Program }>(`/programs/catalog/${slug}`)
+      .then(({ data }) => {
+        if (!cancelled) setProgram(data.data);
+      })
+      .catch(() => {
+        if (!cancelled) setProgram(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20 text-muted-foreground">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (!program) {
     return <NotFound />;
