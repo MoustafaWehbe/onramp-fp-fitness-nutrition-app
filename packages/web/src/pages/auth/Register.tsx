@@ -8,6 +8,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { ROUTES } from "../../constants/routes";
 import { Button } from "../../components/ui/button";
 import { AuthField } from "./AuthField";
+import { GoogleSignInButton } from "./GoogleSignInButton";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -98,6 +99,8 @@ export const Register = () => {
           )}
         </Button>
       </form>
+
+      <GoogleSignInButton onError={setError} />
 
       <p className="mt-8 text-sm text-muted-foreground">
         Already have an account?{" "}
