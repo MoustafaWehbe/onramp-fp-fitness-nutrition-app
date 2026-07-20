@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { SearchX } from "lucide-react";
 import { PROGRAMS } from "../../mocks/programs";
 import { activeProgram } from "../../mock-data/mockData";
+import { usePreferences } from "../../hooks/usePreferences";
 import { ProgramPlanCard } from "./ProgramPlanCard";
 import { ProgramFilters, type ProgramFilterState } from "./ProgramFilters";
 
@@ -12,7 +13,12 @@ const initialFilters: ProgramFilterState = {
 };
 
 export const BrowsePrograms = () => {
-  const [filters, setFilters] = useState<ProgramFilterState>(initialFilters);
+  const { preferences } = usePreferences();
+  const [filters, setFilters] = useState<ProgramFilterState>(() => ({
+    ...initialFilters,
+    goal: preferences.goal ?? "all",
+    level: preferences.level ?? "all",
+  }));
 
   const results = useMemo(() => {
     const q = filters.search.trim().toLowerCase();

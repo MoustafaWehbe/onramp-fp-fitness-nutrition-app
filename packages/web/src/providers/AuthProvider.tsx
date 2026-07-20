@@ -141,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     name: string,
   ): Promise<void> {
     await apiClient.post("/auth/register", { email, password, name });
+    await login(email, password);
   }
 
   async function logout(): Promise<void> {
