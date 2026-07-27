@@ -16,7 +16,7 @@ export const GuestLayout = () => (
             className="h-9 w-9 object-contain drop-shadow"
           />
           <span className="font-sans text-lg font-bold uppercase tracking-wider text-white drop-shadow pt-[3px]">
-            FitCoach<span className="text-brand-green"> AI</span>
+            FitCoach
           </span>
         </Link>
 
@@ -62,11 +62,11 @@ export const GuestLayout = () => (
             className="h-6 w-6 object-contain"
           />
           <span className="font-heading font-bold uppercase tracking-wider">
-            FitCoach AI
+            FitCoach
           </span>
         </div>
         <p className="text-sm">
-          © {new Date().getFullYear()} FitCoach AI. Built for the demo.
+          © {new Date().getFullYear()} FitCoach. Built for the demo.
         </p>
         <div className="flex gap-6 text-sm">
           {GUEST_FOOTER_LINKS.map((l) => (

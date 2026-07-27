@@ -18,7 +18,7 @@ export const AuthBrandPanel = () => (
             <Dumbbell className="h-5 w-5" />
           </span>
           <span className="font-heading text-lg font-bold uppercase tracking-wider">
-            FitCoach<span className="text-primary"> AI</span>
+            FitCoach
           </span>
         </Link>
         <Link
