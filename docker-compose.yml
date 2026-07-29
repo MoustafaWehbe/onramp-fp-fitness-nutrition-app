@@ -1,4 +1,14 @@
-version: '3.8'
+# Service names, not localhost: `postgres` and `redis` are the DNS names inside
+# the compose network. Copying the localhost URLs from .env.example breaks here.
+x-datastore-env: &datastore-env
+  DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-starter_kit}
+  REDIS_URL: redis://redis:6379
+
+x-datastore-deps: &datastore-deps
+  postgres:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
 
 services:
   postgres:
@@ -22,7 +32,7 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     ports:
-      - '6379:6379'
+      - '${REDIS_PORT:-6379}:6379'
     volumes:
       - redis_data:/data
     healthcheck:
@@ -30,6 +40,59 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: packages/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      <<: *datastore-env
+      NODE_ENV: production
+      PORT: 3000
+      # Only used when the API is called directly. Through the web container
+      # requests are same-origin via the nginx /api proxy, so CORS never fires.
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?set JWT_REFRESH_SECRET in .env}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-4o-mini}
+    # Host side only. The container always listens on 3000; API_PORT just moves
+    # the published port so the stack can coexist with other local projects.
+    ports:
+      - '${API_PORT:-3000}:3000'
+    depends_on: *datastore-deps
+
+  workers:
+    build:
+      context: .
+      dockerfile: packages/workers/Dockerfile
+    restart: unless-stopped
+    environment:
+      <<: *datastore-env
+      NODE_ENV: production
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-4o-mini}
+    depends_on: *datastore-deps
+
+  web:
+    build:
+      context: .
+      dockerfile: packages/web/Dockerfile
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:?set VITE_GOOGLE_CLIENT_ID in .env}
+    restart: unless-stopped
+    ports:
+      - '${WEB_PORT:-8080}:8080'
+    # nginx resolves the `api` hostname once at startup and exits if it is
+    # missing, so this has to wait for a healthy API rather than just a started one.
+    depends_on:
+      api:
+        condition: service_healthy
 
 volumes:
   postgres_data:
