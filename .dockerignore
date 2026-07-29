@@ -16,9 +16,13 @@ coverage
 **/coverage
 *.tsbuildinfo
 
-# Also matches .env.example — nothing in .env* belongs in the context.
+# Patterns without a slash match the context root only, so the nested forms are
+# not redundant -- packages/web/.env needs them. Also matches .env.example;
+# nothing in .env* belongs in a build context.
 .env
 .env.*
+**/.env
+**/.env.*
 
 docs
 *.md

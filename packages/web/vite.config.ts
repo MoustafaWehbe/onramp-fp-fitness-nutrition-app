@@ -8,6 +8,10 @@ export default defineConfig(({ mode }) => {
     env.API_PROXY_TARGET ?? `http://localhost:${env.PORT ?? "3000"}`;
 
   return {
+    // Root .env is the single source: compose interpolates from there too.
+    // Only VITE_-prefixed vars reach the bundle, so the server secrets that
+    // live alongside them are not exposed.
+    envDir: path.resolve(__dirname, "../.."),
     plugins: [react()],
     resolve: {
       alias: {

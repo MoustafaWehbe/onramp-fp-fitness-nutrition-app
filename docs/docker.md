@@ -100,6 +100,10 @@ If the number of environment-varying values grows, switch to the `/env.js` appro
 
 Compose declares the build arg with `${VITE_GOOGLE_CLIENT_ID:?...}`, so a missing value fails the build with a clear message rather than producing a bundle that renders and then fails inside Google's SDK.
 
+The value lives in the **root** `.env`, not `packages/web/.env`. Compose interpolates only from the root, and `packages/web/vite.config.ts` sets `envDir` to the repo root so `npm run dev` reads the same file. One variable in two files is a drift waiting to happen.
+
+Pointing Vite at the root `.env` does not expose the server secrets stored there: only `VITE_`-prefixed variables are injected into the client bundle. The unprefixed `loadEnv(mode, ..., "")` call in `vite.config.ts` reads everything, but that runs at config time in Node and nothing from it reaches the browser.
+
 ## Why `packages/shared/package.json` points `main` at `dist`
 
 ```diff
