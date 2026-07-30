@@ -35,8 +35,8 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         brand: {
-          green: "#6ef362",
-          "green-dark": "#4fd544",
+          green: "#7CB342",
+          "green-dark": "#33691E",
         },
         ink: {
           DEFAULT: "#0a0a0a",
@@ -45,8 +45,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        heading: ["Oswald", "Inter", "sans-serif"],
+        sans: ["Alegreya Sans", "system-ui", "sans-serif"],
+        heading: ["Oswald", "Alegreya Sans", "sans-serif"],
         display: ["Anton", "Oswald", "sans-serif"],
       },
       borderRadius: {

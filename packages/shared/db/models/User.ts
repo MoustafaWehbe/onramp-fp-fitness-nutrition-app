@@ -4,7 +4,8 @@ import type { UserRole } from "../../auth/types";
 export interface UserAttributes {
   id: string;
   email: string;
-  passwordHash: string;
+  passwordHash: string | null;
+  googleId: string | null;
   name: string;
   role: UserRole;
   emailVerified: boolean;
@@ -14,7 +15,7 @@ export interface UserAttributes {
 
 export interface UserCreationAttributes extends Optional<
   UserAttributes,
-  "id" | "role" | "emailVerified"
+  "id" | "role" | "emailVerified" | "passwordHash" | "googleId"
 > {}
 
 export class User
@@ -23,7 +24,8 @@ export class User
 {
   declare id: string;
   declare email: string;
-  declare passwordHash: string;
+  declare passwordHash: string | null;
+  declare googleId: string | null;
   declare name: string;
   declare role: UserRole;
   declare emailVerified: boolean;
@@ -46,7 +48,12 @@ export class User
         },
         passwordHash: {
           type: DataTypes.STRING,
-          allowNull: false,
+          allowNull: true,
+        },
+        googleId: {
+          type: DataTypes.STRING,
+          allowNull: true,
+          unique: true,
         },
         name: {
           type: DataTypes.STRING(255),

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, Loader2, SearchX } from "lucide-react";
-import { ProgramPlanCard } from "./ProgramPlanCard";
-import { ProgramFilters, type ProgramFilterState } from "./ProgramFilters";
+import { Button } from "../../components/ui/button";
+import { usePreferences } from "../../hooks/usePreferences";
 import {
   fetchPrograms,
   type ProgramCatalogItem,
 } from "../../lib/program-api";
-import { Button } from "../../components/ui/button";
+import { ProgramFilters, type ProgramFilterState } from "./ProgramFilters";
+import { ProgramPlanCard } from "./ProgramPlanCard";
 
 const initialFilters: ProgramFilterState = {
   search: "",
@@ -15,7 +16,12 @@ const initialFilters: ProgramFilterState = {
 };
 
 export const BrowsePrograms = () => {
-  const [filters, setFilters] = useState<ProgramFilterState>(initialFilters);
+  const { preferences } = usePreferences();
+  const [filters, setFilters] = useState<ProgramFilterState>(() => ({
+    ...initialFilters,
+    goal: preferences.goal ?? "all",
+    level: preferences.level ?? "all",
+  }));
   const [programs, setPrograms] = useState<ProgramCatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +42,6 @@ export const BrowsePrograms = () => {
     void loadPrograms();
   }, [loadPrograms]);
 
-  const activeProgramId = programs[0]?.id ?? null;
   const goals = useMemo(
     () => Array.from(new Set(programs.map((program) => program.goal))).sort(),
     [programs],
@@ -72,7 +77,7 @@ export const BrowsePrograms = () => {
           Choose your program
         </h1>
         <p className="mt-2 max-w-xl text-muted-foreground">
-          Each plan includes a full weekly meal and workout schedule — pick one
+          Each plan includes a full weekly meal and workout schedule - pick one
           and it becomes your day-by-day plan.
         </p>
       </div>
@@ -83,22 +88,6 @@ export const BrowsePrograms = () => {
         levels={levels}
         onChange={setFilters}
       />
-
-      {!loading && !error && (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>
-            {results.length} program{results.length === 1 ? "" : "s"}
-          </span>
-          {hasFilters && (
-            <button
-              onClick={() => setFilters(initialFilters)}
-              className="font-medium text-foreground hover:text-primary"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
-      )}
 
       {loading ? (
         <div className="grid items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-3">
@@ -122,27 +111,41 @@ export const BrowsePrograms = () => {
             Retry
           </Button>
         </div>
-      ) : results.length > 0 ? (
-        <div className="grid items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-3">
-          {results.map((p) => (
-            <ProgramPlanCard
-              key={p.id}
-              program={p}
-              active={p.id === activeProgramId}
-            />
-          ))}
-        </div>
       ) : (
-        <div className="flex flex-col items-center justify-center gap-3 border border-dashed border-border py-20 text-center">
-          <SearchX className="h-10 w-10 text-muted-foreground" />
-          <p className="font-heading text-lg font-bold uppercase">
-            No programs found
-          </p>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            Try a different search term or clear your filters to see the full
-            catalog.
-          </p>
-        </div>
+        <>
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>
+              {results.length} program{results.length === 1 ? "" : "s"}
+            </span>
+            {hasFilters && (
+              <button
+                onClick={() => setFilters(initialFilters)}
+                className="font-medium text-foreground hover:text-primary"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+
+          {results.length > 0 ? (
+            <div className="grid items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {results.map((p) => (
+                <ProgramPlanCard key={p.id} program={p} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-3 border border-dashed border-border py-20 text-center">
+              <SearchX className="h-10 w-10 text-muted-foreground" />
+              <p className="font-heading text-lg font-bold uppercase">
+                No programs found
+              </p>
+              <p className="max-w-sm text-sm text-muted-foreground">
+                Try a different search term or clear your filters to see the full
+                catalog.
+              </p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

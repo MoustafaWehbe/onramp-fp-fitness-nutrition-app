@@ -9,16 +9,16 @@ import {
   Loader2,
   Utensils,
 } from "lucide-react";
-import { ROUTES } from "../../constants/routes";
 import { Badge } from "../../components/ui/badge";
 import { Button, buttonVariants } from "../../components/ui/button";
-import { cn } from "../../lib/utils";
-import { NotFound } from "../NotFound";
+import { ROUTES } from "../../constants/routes";
 import {
   fetchProgramDetail,
   formatProgramLabel,
   type ProgramCatalogItem,
 } from "../../lib/program-api";
+import { cn } from "../../lib/utils";
+import { NotFound } from "../NotFound";
 
 export const ProgramDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -76,7 +76,7 @@ export const ProgramDetail = () => {
           {error ?? "Program not found"}
         </p>
         <p className="max-w-sm text-sm text-muted-foreground">
-          This page only renders records returned by the authenticated API.
+          This page only renders records returned by the API.
         </p>
         <Button onClick={() => void loadProgram()} className="gap-2">
           <Loader2 className="h-4 w-4" />
@@ -116,24 +116,6 @@ export const ProgramDetail = () => {
         </div>
       </div>
 
-      <div>
-        <div className="mb-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">
-            Week {program.currentWeek}, day {program.currentDay}
-          </span>
-          <span>/</span>
-          <span>
-            {program.completedDays} of {program.totalDays} days complete
-          </span>
-        </div>
-        <h1 className="font-display text-4xl uppercase tracking-tight">
-          {program.title}
-        </h1>
-        <p className="mt-2 max-w-2xl text-muted-foreground">
-          {program.description}
-        </p>
-      </div>
-
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="flex flex-col items-center gap-1 border border-border p-5">
           <Calendar className="h-5 w-5 text-primary" />
@@ -141,9 +123,7 @@ export const ProgramDetail = () => {
         </div>
         <div className="flex flex-col items-center gap-1 border border-border p-5">
           <Dumbbell className="h-5 w-5 text-primary" />
-          <span className="font-semibold">
-            {program.daysPerWeek}x / week
-          </span>
+          <span className="font-semibold">{program.daysPerWeek}x / week</span>
         </div>
         <div className="flex flex-col items-center gap-1 border border-border p-5">
           <Flame className="h-5 w-5 text-primary" />
@@ -194,7 +174,7 @@ export const ProgramDetail = () => {
                 <p className="font-medium capitalize">{meal.type}</p>
                 <p className="text-sm text-muted-foreground">
                   {meal.items
-                    .map((item) => `${item.name} ${item.quantity}`)
+                    .map((item) => `${item.name} ${item.quantity}`.trim())
                     .join(", ")}
                 </p>
               </div>

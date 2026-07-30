@@ -43,7 +43,7 @@ export interface ProgramCatalogItem {
   dailyCalories: number;
   color: string | null;
   accent: string | null;
-  startDate: string;
+  startDate: string | null;
   currentWeek: number;
   currentDay: number;
   completedDays: number;
@@ -51,6 +51,15 @@ export interface ProgramCatalogItem {
   adherenceRate: number;
   mealCount: number;
   workoutCount: number;
+  macros?: {
+    protein: number;
+    carbs: number;
+    fat: number;
+  } | null;
+  equipment?: string | null;
+  image?: string | null;
+  rating?: number | null;
+  enrolled?: number | null;
   focus: string[];
   tagline: string;
   description: string;
@@ -66,10 +75,10 @@ export async function fetchPrograms(): Promise<ProgramCatalogItem[]> {
 }
 
 export async function fetchProgramDetail(
-  programId: string,
+  slug: string,
 ): Promise<ProgramCatalogItem> {
   const { data } = await apiClient.get<{ data: ProgramCatalogItem }>(
-    `/programs/${programId}`,
+    `/programs/catalog/${slug}`,
   );
   return data.data;
 }

@@ -1,111 +1,71 @@
-import { Link } from "react-router-dom";
-import { ArrowRight, Sparkles, Dumbbell, Flame, Zap } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import { ROUTES } from "../../../constants/routes";
-import { HERO_STATS } from "../landing.data";
 
-export const Hero = () => (
-  <section className="relative overflow-hidden bg-neutral-300 text-neutral-900">
-    <div className="absolute inset-0 opacity-10">
-      <div className="absolute -right-20 top-0 h-full w-1/2 -skew-x-12 bg-neutral-400" />
-      <div className="absolute -right-10 top-0 h-full w-1/3 -skew-x-12 bg-neutral-300" />
-    </div>
+export const Hero = () => {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
 
-    <div className="relative mx-auto grid w-full max-w-7xl gap-12 px-6 py-20 lg:grid-cols-2 lg:items-center lg:py-28">
-      <div className="animate-fade-up">
-        <p className="eyebrow flex items-center gap-2 text-primary">
-          <Sparkles className="h-4 w-4" /> Your AI fitness coach
-        </p>
-        <h1 className="mt-4 font-display text-6xl uppercase leading-[0.95] tracking-tight text-neutral-900 sm:text-7xl lg:text-8xl">
-          Train with
-          <span className="block text-primary">a coach</span>
-          that knows you
-        </h1>
-        <p className="mt-6 max-w-md text-lg text-neutral-600">
-          Skip the generic plan apps. Pick a ready-made program, log what you
-          really do, and let an AI that sees your full history coach every meal
-          and workout.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-4">
-          <Link
-            to={ROUTES.register}
-            className="group inline-flex items-center gap-2 bg-primary px-7 py-3.5 font-heading text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-brand-green-dark"
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    navigate(ROUTES.register, { state: { email } });
+  };
+
+  return (
+    <section className="relative isolate flex min-h-screen w-full items-end overflow-hidden">
+      <img
+        src="/images/banner-image.jpg"
+        alt=""
+        className="absolute inset-0 -z-20 h-full w-full object-cover object-center"
+      />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-black/70 via-black/25 to-transparent" />
+      <div className="absolute inset-0 -z-10 bg-brand-green-dark/20 mix-blend-multiply" />
+
+      <div className="mx-auto w-full max-w-7xl px-6 pb-8 pt-28 sm:pb-10 sm:pt-32 min-[2100px]:pb-16">
+        <div className="max-w-xl animate-fade-up sm:max-w-2xl">
+          <h1 className="font-sans text-4xl font-black uppercase leading-[0.95] tracking-tight text-white drop-shadow-lg sm:text-5xl lg:text-6xl min-[2100px]:text-7xl">
+            Train with a coach
+            <span className="block text-brand-green">that knows you</span>
+          </h1>
+
+          <p className="mt-5 max-w-md text-base text-white/85 drop-shadow sm:mt-6 sm:max-w-lg sm:text-lg min-[2100px]:text-xl">
+            Skip the generic plan apps. Pick a ready-made program, log what you
+            really do, and let an AI that sees your full history coach every meal
+            and workout.
+          </p>
+
+          <form
+            onSubmit={handleSubmit}
+            className="mt-7 flex max-w-lg flex-col gap-3 sm:mt-8 sm:flex-row"
           >
-            Start free
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Link>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              aria-label="Email address"
+              className="min-w-0 flex-1 rounded-xl border border-white/20 bg-white/10 px-5 py-4 text-sm text-white backdrop-blur placeholder:text-white/60 focus:border-brand-green focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-brand-green px-7 py-4 font-heading text-sm font-semibold uppercase tracking-wide text-[#0c2410] transition-colors hover:bg-white"
+            >
+              Start free trial
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </button>
+          </form>
+
           <Link
             to={ROUTES.programs}
-            className="inline-flex items-center gap-2 border border-neutral-500 px-7 py-3.5 font-heading text-sm font-semibold uppercase tracking-wide text-neutral-800 transition-colors hover:border-primary hover:text-primary"
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-white/70 underline-offset-4 transition-colors hover:text-white hover:underline"
           >
-            Browse programs
+            or browse the program catalog
+            <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
-
-        <div className="mt-12 flex gap-8 border-t border-neutral-400 pt-8">
-          {HERO_STATS.map((s) => (
-            <div key={s.label}>
-              <div className="font-display text-3xl text-primary">
-                {s.value}
-              </div>
-              <div className="text-xs uppercase tracking-wide text-neutral-500">
-                {s.label}
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
-
-      <div className="relative animate-fade-in flex items-center justify-center">
-        {/* glow behind the mascot */}
-        <div className="absolute h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute h-52 w-52 rounded-full bg-primary/10 hero-pulse" />
-
-        {/* floating fitness-icon badges */}
-        <span className="hero-float-a absolute left-2 top-8 z-20 flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-lg ring-1 ring-black/5 sm:left-4 sm:top-12">
-          <Dumbbell className="h-6 w-6 text-primary" />
-        </span>
-        <span className="hero-float-b absolute right-2 top-2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-primary shadow-lg sm:right-8 sm:top-6">
-          <Zap className="h-5 w-5 text-white" />
-        </span>
-        <span className="hero-float-c absolute bottom-16 left-0 z-20 flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-lg ring-1 ring-black/5 sm:bottom-20 sm:-left-2">
-          <Flame className="h-5 w-5 text-primary" />
-        </span>
-        <span className="hero-float-a absolute bottom-4 right-6 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900 shadow-lg sm:right-12" style={{ animationDelay: "1.1s" }}>
-          <Sparkles className="h-5 w-5 text-primary" />
-        </span>
-
-        <img
-          src="/images/gym-mascot.png"
-          alt="Your AI fitness coach mascot"
-          className="relative z-10 w-full max-w-sm object-contain drop-shadow-2xl"
-        />
-      </div>
-    </div>
-
-    <style>{`
-      @keyframes heroFloatA {
-        0%, 100% { transform: translateY(0) rotate(-4deg); }
-        50% { transform: translateY(-14px) rotate(4deg); }
-      }
-      @keyframes heroFloatB {
-        0%, 100% { transform: translateY(0) rotate(6deg); }
-        50% { transform: translateY(12px) rotate(-6deg); }
-      }
-      @keyframes heroFloatC {
-        0%, 100% { transform: translateY(0) rotate(0deg); }
-        50% { transform: translateY(-10px) rotate(8deg); }
-      }
-      @keyframes heroPulse {
-        0%, 100% { opacity: 0.5; transform: scale(1); }
-        50% { opacity: 0.9; transform: scale(1.08); }
-      }
-      .hero-float-a { animation: heroFloatA 4.5s ease-in-out infinite; }
-      .hero-float-b { animation: heroFloatB 3.6s ease-in-out infinite; animation-delay: 0.4s; }
-      .hero-float-c { animation: heroFloatC 5.2s ease-in-out infinite; animation-delay: 0.8s; }
-      .hero-pulse { animation: heroPulse 3s ease-in-out infinite; }
-      @media (prefers-reduced-motion: reduce) {
-        .hero-float-a, .hero-float-b, .hero-float-c, .hero-pulse { animation: none; }
-      }
-    `}</style>
-  </section>
-);
+    </section>
+  );
+};

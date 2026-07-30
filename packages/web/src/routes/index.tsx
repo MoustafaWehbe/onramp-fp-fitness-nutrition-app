@@ -10,6 +10,7 @@ import { ROUTES } from "../constants/routes";
 import { Landing } from "../pages/landing/Landing";
 import { Login } from "../pages/auth/Login";
 import { Register } from "../pages/auth/Register";
+import { Onboarding } from "../pages/onboarding/Onboarding";
 import { Dashboard } from "../pages/dashboard/Dashboard";
 import { Settings } from "../pages/dashboard/Settings";
 import { Progress } from "../pages/progress/Progress";
@@ -34,6 +35,8 @@ export const AppRoutes = () => (
     </Route>
 
     <Route element={<ProtectedRoute />}>
+      <Route path={ROUTES.onboarding} element={<Onboarding />} />
+
       <Route element={<AppLayout />}>
         <Route path={ROUTES.dashboard} element={<Dashboard />} />
         <Route path={ROUTES.progress} element={<Progress />} />

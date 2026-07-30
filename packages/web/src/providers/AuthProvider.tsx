@@ -18,6 +18,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -28,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restore session on mount — access token cookie is sent automatically
+  // Restore session on mount; the access token cookie is sent automatically.
   useEffect(() => {
     let cancelled = false;
 
@@ -64,12 +65,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function loginWithGoogle(credential: string): Promise<void> {
+    const { data } = await apiClient.post<{
+      data: { user: AuthUser };
+    }>("/auth/google", { credential });
+    setUser(data.data.user);
+  }
+
   async function register(
     email: string,
     password: string,
     name: string,
   ): Promise<void> {
     await apiClient.post("/auth/register", { email, password, name });
+    await login(email, password);
   }
 
   async function logout(): Promise<void> {
@@ -81,7 +90,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, login, loginWithGoogle, register, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -89,7 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuthContext(): AuthContextValue {
   const ctx = useContext(AuthContext);
-  if (!ctx)
+  if (!ctx) {
     throw new Error("useAuthContext must be used within <AuthProvider>");
+  }
   return ctx;
 }

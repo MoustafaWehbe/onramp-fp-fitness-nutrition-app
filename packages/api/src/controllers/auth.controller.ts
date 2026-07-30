@@ -63,6 +63,21 @@ export const authController = {
     }
   },
 
+  async google(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { credential } = req.body as { credential: string };
+      const { user, accessToken, refreshToken } = await authService.loginWithGoogle({
+        credential,
+        userAgent: req.headers["user-agent"],
+        ipAddress: req.ip,
+      });
+      setAuthCookies(res, accessToken, refreshToken);
+      res.json({ data: { user } });
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async refresh(
     req: Request,
     res: Response,

@@ -80,6 +80,105 @@ function formatProgram(program: ProgramWithWeekPlan) {
   };
 }
 
+function readJsonField<T>(value: T | string | null): T | null {
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Maps a catalog `Program` row to the shape the web browse/detail pages expect.
+ * (`weeks` -> `durationWeeks`, `calories` -> `dailyCalories`, etc.)
+ */
+function serializeCatalogProgram(program: Program) {
+  const focus = readJsonField<string[]>(program.focus) ?? [];
+  const sampleWeek = readJsonField<
+    Array<{
+      day: string;
+      title: string;
+      focus: string;
+      durationMin: number;
+      rest: boolean;
+    }>
+  >(program.sampleWeek) ?? [];
+  const sampleMeals = readJsonField<
+    Array<{
+      name: string;
+      items: string;
+      calories: number;
+    }>
+  >(program.sampleMeals) ?? [];
+  const workoutDays = sampleWeek.filter((day) => !day.rest);
+
+  return {
+    id: program.id,
+    slug: program.slug ?? program.id,
+    title: program.title,
+    goal: program.goal,
+    level: program.level,
+    duration: program.duration,
+    durationWeeks: program.weeks,
+    daysPerWeek: program.daysPerWeek ?? workoutDays.length,
+    dailyCalories: program.calories,
+    color: program.color,
+    accent: program.accent,
+    startDate: program.startDate,
+    currentWeek: program.currentWeek,
+    currentDay: program.currentDay,
+    completedDays: program.completedDays,
+    totalDays: program.totalDays ?? program.weeks * 7,
+    adherenceRate: program.adherenceRate,
+    mealCount: sampleMeals.length,
+    workoutCount: workoutDays.length,
+    macros: readJsonField(program.macros),
+    focus,
+    equipment: program.equipment,
+    image: program.image,
+    rating: program.rating,
+    enrolled: program.enrolled,
+    tagline: program.tagline ?? `${program.goal} / ${program.duration}`,
+    description:
+      program.description ??
+      `${program.level} ${program.goal.toLowerCase()} program with ${program.weeks} weeks of training.`,
+    sampleWeek: sampleWeek.map((day, index) => ({
+      id: `${program.id}-${day.day}`,
+      dayNumber: index + 1,
+      label: day.day,
+      date: "",
+      isRestDay: day.rest,
+      mealCount: 0,
+      workout: day.rest
+        ? null
+        : {
+            id: `${program.id}-${day.day}-workout`,
+            name: day.title,
+            type: day.focus,
+            duration: `${day.durationMin} min`,
+            exerciseCount: 0,
+          },
+    })),
+    sampleMeals: sampleMeals.map((meal, index) => ({
+      id: `${program.id}-meal-${index}`,
+      type: meal.name,
+      time: "",
+      totalCalories: meal.calories,
+      totalProtein: 0,
+      totalCarbs: 0,
+      totalFat: 0,
+      items: [
+        {
+          id: `${program.id}-meal-${index}-items`,
+          name: meal.items,
+          quantity: "",
+        },
+      ],
+    })),
+  };
+}
+
 export const programService = {
   async getPrograms(userId?: string) {
     const programs = await Program.findAll({
@@ -173,5 +272,18 @@ export const programService = {
       attributes: ["id", "dayNumber", "label", "date", "isRestDay"],
     });
     return dayPlans;
+  },
+
+  async listCatalog() {
+    const programs = await Program.findAll({
+      where: { isCatalog: true },
+      order: [["enrolled", "DESC"]],
+    });
+    return programs.map(serializeCatalogProgram);
+  },
+
+  async getCatalogBySlug(slug: string) {
+    const program = await Program.findOne({ where: { slug, isCatalog: true } });
+    return program ? serializeCatalogProgram(program) : null;
   },
 };

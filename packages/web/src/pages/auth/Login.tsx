@@ -8,6 +8,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { ROUTES } from "../../constants/routes";
 import { Button } from "../../components/ui/button";
 import { AuthField } from "./AuthField";
+import { GoogleSignInButton } from "./GoogleSignInButton";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -93,6 +94,8 @@ export const Login = () => {
           )}
         </Button>
       </form>
+
+      <GoogleSignInButton onError={setError} />
 
       <p className="mt-8 text-sm text-muted-foreground">
         New to FitCoach AI?{" "}
