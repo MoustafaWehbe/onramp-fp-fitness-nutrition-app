@@ -58,22 +58,45 @@ export const logService = {
 
     // Upsert each meal log (insert or update if one already exists for this user+meal)
     for (const m of meals) {
-      await MealLog.upsert({
-        mealId: m.mealId,
-        userId,
+      const existingMealLog = await MealLog.findOne({
+        where: { mealId: m.mealId, userId },
+      });
+      const values = {
         status: m.status,
         note: m.note ?? null,
         actualCalories: m.actualCalories ?? null,
-      });
+      };
+
+      if (existingMealLog) {
+        await existingMealLog.update(values);
+      } else {
+        await MealLog.create({
+          mealId: m.mealId,
+          userId,
+          ...values,
+        });
+      }
     }
 
     if (workout) {
-      const [workoutLog] = await WorkoutLog.upsert({
-        workoutId: workout.workoutId,
-        userId,
+      const existingWorkoutLog = await WorkoutLog.findOne({
+        where: { workoutId: workout.workoutId, userId },
+      });
+      const values = {
         status: workout.status,
         note: workout.note ?? null,
-      });
+      };
+      const workoutLog = existingWorkoutLog
+        ? await existingWorkoutLog.update(values)
+        : await WorkoutLog.create({
+            workoutId: workout.workoutId,
+            userId,
+            ...values,
+          });
+
+      if (!workoutLog) {
+        throw new Error("Workout log could not be saved");
+      }
 
       // Reset all exercise completions for this log, then mark the ones sent as completed.
       // Simple + correct approach for a small list of exercises per workout.
@@ -82,13 +105,17 @@ export const logService = {
         attributes: ["id"],
       });
 
-      for (const ex of allExercises) {
-        await WorkoutLogExercise.upsert({
+      await WorkoutLogExercise.destroy({
+        where: { workoutLogId: workoutLog.id },
+      });
+
+      await WorkoutLogExercise.bulkCreate(
+        allExercises.map((ex) => ({
           workoutLogId: workoutLog.id,
           exerciseId: ex.id,
           completed: workout.completedExerciseIds.includes(ex.id),
-        });
-      }
+        })),
+      );
     }
 
     return { success: true };

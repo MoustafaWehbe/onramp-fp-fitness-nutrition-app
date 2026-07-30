@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useLocalStorage } from "./useLocalStorage";
-import type { Goal, Level } from "../mocks/types";
+import type { Goal, Level } from "../constants/onboarding";
 
 export interface UserPreferences {
   goal: Goal | null;

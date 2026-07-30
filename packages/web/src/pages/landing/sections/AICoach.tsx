@@ -1,7 +1,7 @@
-import { MessageSquareText, Sparkles } from "lucide-react";
-import { cn } from "../../../lib/utils";
-import { LANDING_SECTIONS } from "../../../constants/routes";
-import { COACH_QUESTIONS, COACH_CHAT } from "../landing.data";
+import { Link } from "react-router-dom";
+import { ArrowRight, Database, MessageSquareText, Sparkles } from "lucide-react";
+import { LANDING_SECTIONS, ROUTES } from "../../../constants/routes";
+import { COACH_QUESTIONS } from "../landing.data";
 
 export const AICoach = () => (
   <section
@@ -16,9 +16,9 @@ export const AICoach = () => (
           <span className="text-primary"> full context</span>
         </h2>
         <p className="mt-6 max-w-md text-white/70">
-          Because it sees both your plan and everything you've logged, the
-          assistant answers like a real coach who's been watching your week —
-          not a chatbot guessing.
+          Because it sees both your plan and everything you have logged, the
+          assistant answers from PostgreSQL-backed program, meal, workout,
+          measurement, and chat history.
         </p>
 
         <ul className="mt-8 space-y-3">
@@ -34,29 +34,43 @@ export const AICoach = () => (
         </ul>
       </div>
 
-      <div className="clip-slant-tl space-y-4 border border-white/10 bg-ink-800 p-6">
-        {COACH_CHAT.map((msg, i) =>
-          msg.from === "user" ? (
-            <div key={i} className="flex justify-end">
-              <p className="max-w-[80%] bg-primary px-4 py-2.5 text-sm text-ink">
-                {msg.text}
-              </p>
-            </div>
-          ) : (
-            <div key={i} className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-primary text-ink">
-                <Sparkles className="h-4 w-4" />
-              </span>
-              <p
-                className={cn(
-                  "max-w-[85%] border border-white/10 bg-ink px-4 py-2.5 text-sm text-white/80",
-                )}
+      <div className="clip-slant-tl border border-white/10 bg-ink-800 p-6">
+        <div className="flex items-center gap-3 border border-white/10 bg-ink p-4">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-primary text-ink">
+            <Database className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-heading text-sm font-semibold uppercase tracking-wide">
+              Live context only
+            </p>
+            <p className="mt-1 text-sm text-white/60">
+              The assistant panel appears after sign in and only renders real
+              OpenRouter/API responses or clear provider errors.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          {["Active program", "Meal logs", "Workout logs", "Measurements"].map(
+            (item) => (
+              <div
+                key={item}
+                className="flex items-center gap-2 border border-white/10 px-3 py-3 text-sm text-white/70"
               >
-                {msg.text}
-              </p>
-            </div>
-          ),
-        )}
+                <Sparkles className="h-4 w-4 text-primary" />
+                {item}
+              </div>
+            ),
+          )}
+        </div>
+
+        <Link
+          to={ROUTES.login}
+          className="mt-6 inline-flex items-center gap-2 bg-primary px-5 py-3 font-heading text-sm font-semibold uppercase tracking-wide text-ink transition-colors hover:bg-brand-green-dark"
+        >
+          Open AI assistant
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
     </div>
   </section>

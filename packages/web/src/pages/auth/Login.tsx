@@ -29,10 +29,15 @@ export const Login = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isSubmitted, touchedFields },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    mode: "onTouched",
+    reValidateMode: "onChange",
   });
+
+  const shouldShowError = (field: keyof LoginFormData) =>
+    isSubmitted || Boolean(touchedFields[field]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
@@ -54,7 +59,7 @@ export const Login = () => {
         Pick up where you left off and keep your streak going.
       </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5" noValidate>
         {error && (
           <p className="border-l-2 border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {error}
@@ -66,16 +71,16 @@ export const Login = () => {
           label="Email"
           placeholder="you@example.com"
           autoComplete="email"
-          error={errors.email?.message}
+          error={shouldShowError("email") ? errors.email?.message : undefined}
           {...register("email")}
         />
         <AuthField
           id="password"
           type="password"
           label="Password"
-          placeholder="••••••••"
+          placeholder="********"
           autoComplete="current-password"
-          error={errors.password?.message}
+          error={shouldShowError("password") ? errors.password?.message : undefined}
           {...register("password")}
         />
         <Button
@@ -83,7 +88,7 @@ export const Login = () => {
           disabled={isSubmitting}
           className="group h-12 w-full gap-2 font-heading text-sm font-semibold uppercase tracking-wide hover:bg-brand-green-dark"
         >
-          {isSubmitting ? "Signing in…" : "Sign in"}
+          {isSubmitting ? "Signing in..." : "Sign in"}
           {!isSubmitting && (
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           )}

@@ -7,6 +7,7 @@ import {
   Dumbbell,
   Flame,
   Gauge,
+  RefreshCw,
   Sparkles,
   Target,
   TrendingUp,
@@ -21,20 +22,13 @@ import {
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import {
-  getActivePlan,
-  getDailyLogs,
-  getMeasurements,
-  macroBreakdown as fallbackMacroBreakdown,
-  saveMeasurements,
-  weeklyNutrition as fallbackWeeklyNutrition,
-  weeklyWorkoutCompletion as fallbackWeeklyWorkoutCompletion,
   type DailyLog,
-  type FitnessPlan,
+  type FitnessProgramSummary,
   type MacroBreakdown,
   type MeasurementEntry,
   type WeeklyNutrition,
   type WeeklyWorkoutCompletion,
-} from "../../lib/fitness-mock-data";
+} from "../../lib/fitness-types";
 import {
   fetchFitnessSummary,
   saveFitnessMeasurement,
@@ -47,10 +41,6 @@ const chartPadding = 34;
 const panelClass =
   "border-white/60 bg-white/80 shadow-[0_24px_80px_-45px_rgba(30,41,59,0.55)] backdrop-blur-xl";
 const mutedPanelClass = "border-white/50 bg-white/60 backdrop-blur-xl";
-const progressHeroImage =
-  "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1200&q=82";
-const nutritionImage =
-  "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=900&q=82";
 const motionStyles = `
   @keyframes dev3-float {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
@@ -86,6 +76,13 @@ const motionStyles = `
     transform: translateX(-120%);
     animation: dev3-shimmer 3.8s ease-in-out infinite;
   }
+  @media (prefers-reduced-motion: reduce) {
+    .dev3-float, .dev3-drift, .dev3-fade-up, .dev3-bar, .dev3-shimmer::after {
+      animation: none !important;
+      transform: none !important;
+    }
+    .dev3-card, .dev3-card:hover { transition: none !important; transform: none !important; }
+  }
 `;
 const emptyMeasurement: MeasurementEntry = {
   date: "Not logged",
@@ -94,9 +91,156 @@ const emptyMeasurement: MeasurementEntry = {
   chest: 0,
   hips: 0,
 };
+const emptyPlan: FitnessProgramSummary = {
+  id: "",
+  name: "No active program",
+  focus: "",
+  calorieTarget: 0,
+  proteinTarget: 0,
+  workoutTargetPerWeek: 0,
+};
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+function useReducedMotion(): boolean {
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReducedMotion(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  return reducedMotion;
+}
+
+function AnimatedNumber({
+  value,
+  suffix = "",
+}: {
+  value: number;
+  suffix?: string;
+}) {
+  const reducedMotion = useReducedMotion();
+  const [displayValue, setDisplayValue] = useState(value);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      setDisplayValue(value);
+      return undefined;
+    }
+
+    let frame = 0;
+    const start = displayValue;
+    const startTime = performance.now();
+    const duration = 700;
+
+    function tick(now: number) {
+      const progress = clamp((now - startTime) / duration, 0, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(Math.round(start + (value - start) * eased));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    }
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [value, reducedMotion]);
+
+  return <>{displayValue.toLocaleString()}{suffix}</>;
+}
+
+function ProgressRing({
+  value,
+  label,
+  tone = "cyan",
+}: {
+  value: number;
+  label: string;
+  tone?: "cyan" | "violet" | "emerald";
+}) {
+  const clamped = clamp(value, 0, 100);
+  const color = tone === "violet" ? "#8b5cf6" : tone === "emerald" ? "#10b981" : "#06b6d4";
+
+  return (
+    <div className="relative grid place-items-center">
+      <svg viewBox="0 0 120 120" className="h-28 w-28 -rotate-90">
+        <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(226,232,240,.9)" strokeWidth="12" />
+        <circle
+          cx="60"
+          cy="60"
+          r="48"
+          fill="none"
+          stroke={color}
+          strokeDasharray={`${clamped * 3.015} 301.5`}
+          strokeLinecap="round"
+          strokeWidth="12"
+          className="transition-all duration-700 ease-out"
+        />
+      </svg>
+      <div className="absolute text-center">
+        <p className="text-xl font-semibold text-slate-950"><AnimatedNumber value={clamped} suffix="%" /></p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+function FitnessHeroIllustration() {
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(34,211,238,.24),transparent_30%),radial-gradient(circle_at_80%_10%,rgba(167,139,250,.28),transparent_32%)]" />
+      <svg viewBox="0 0 520 360" className="absolute inset-x-0 bottom-0 h-full w-full" role="img" aria-label="Abstract fitness progress illustration">
+        <defs>
+          <linearGradient id="heroPlate" x1="0" x2="1">
+            <stop offset="0%" stopColor="#67e8f9" />
+            <stop offset="100%" stopColor="#a78bfa" />
+          </linearGradient>
+        </defs>
+        <path d="M60 278 C128 226 168 250 220 198 C282 136 342 164 456 82" fill="none" stroke="url(#heroPlate)" strokeWidth="16" strokeLinecap="round" opacity=".86" />
+        <path d="M76 294 C150 242 184 268 238 214 C302 150 360 178 474 100" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" opacity=".42" />
+        {[110, 174, 238, 302, 366].map((x, index) => (
+          <g key={x} className="dev3-bar" style={{ animationDelay: `${index * 0.12}s` }}>
+            <rect x={x} y={250 - index * 24} width="32" height={70 + index * 24} rx="16" fill="rgba(255,255,255,.14)" />
+            <rect x={x + 7} y={286 - index * 28} width="18" height={34 + index * 28} rx="9" fill="url(#heroPlate)" />
+          </g>
+        ))}
+        <circle cx="408" cy="90" r="44" fill="rgba(15,23,42,.5)" stroke="rgba(255,255,255,.16)" />
+        <path d="M390 90 h36 M408 72 v36" stroke="#67e8f9" strokeWidth="8" strokeLinecap="round" />
+      </svg>
+    </div>
+  );
+}
+
+function NutritionIllustration() {
+  return (
+    <svg viewBox="0 0 420 180" className="absolute inset-0 h-full w-full" role="img" aria-label="Nutrition tracking illustration">
+      <defs>
+        <linearGradient id="nutritionGlow" x1="0" x2="1">
+          <stop offset="0%" stopColor="#22d3ee" />
+          <stop offset="55%" stopColor="#34d399" />
+          <stop offset="100%" stopColor="#a78bfa" />
+        </linearGradient>
+      </defs>
+      <rect width="420" height="180" fill="#0f172a" />
+      <circle cx="112" cy="92" r="58" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)" strokeWidth="2" />
+      <path d="M112 40 A52 52 0 0 1 164 92 L112 92 Z" fill="#22d3ee" opacity=".9" />
+      <path d="M164 92 A52 52 0 0 1 88 139 L112 92 Z" fill="#34d399" opacity=".9" />
+      <path d="M88 139 A52 52 0 1 1 112 40 L112 92 Z" fill="#a78bfa" opacity=".86" />
+      {[224, 264, 304, 344].map((x, index) => (
+        <g key={x} className="dev3-bar" style={{ animationDelay: `${index * 0.16}s` }}>
+          <rect x={x} y={54} width="20" height="90" rx="10" fill="rgba(255,255,255,.12)" />
+          <rect x={x} y={116 - index * 13} width="20" height={28 + index * 13} rx="10" fill="url(#nutritionGlow)" />
+        </g>
+      ))}
+      <path d="M212 42 H370" stroke="rgba(255,255,255,.18)" strokeWidth="2" strokeLinecap="round" />
+      <path d="M212 154 H370" stroke="rgba(255,255,255,.12)" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
 }
 
 function getCurrentStreak(logs: DailyLog[]): number {
@@ -209,7 +353,9 @@ function LineChart({ data }: { data: WeeklyNutrition[] }) {
       />
       {data.map((item, index) => (
         <g key={item.week}>
-          <circle cx={x(index)} cy={y(item.calories)} r="7" className="fill-white stroke-indigo-500" strokeWidth="3" />
+          <circle cx={x(index)} cy={y(item.calories)} r="7" className="fill-white stroke-indigo-500" strokeWidth="3">
+            <title>{`${item.week}: ${item.calories} kcal, target ${item.target} kcal`}</title>
+          </circle>
           <text
             x={x(index)}
             y={chartHeight - 10}
@@ -245,7 +391,9 @@ function BarChart({ data }: { data: WeeklyWorkoutCompletion[] }) {
                 className="w-full rounded-2xl bg-gradient-to-t from-indigo-600 via-sky-500 to-cyan-300 shadow-[0_18px_35px_-18px_rgba(79,70,229,0.9)] transition-all"
                 style={{ height: `${clamp(rate, 8, 100)}%` }}
                 aria-label={`${item.week} workout completion ${rate}%`}
-              />
+              >
+                <span className="sr-only">{`${item.week}: ${item.completed} of ${item.target} workouts`}</span>
+              </div>
             </div>
             <div className="text-center">
               <div className="text-sm font-semibold text-slate-900">{rate}%</div>
@@ -295,7 +443,9 @@ function MacroDonut({ data }: { data: MacroBreakdown[] }) {
               strokeLinecap="round"
               strokeWidth="18"
               transform="rotate(-90 60 60)"
-            />
+            >
+              <title>{`${item.label}: ${item.grams}g`}</title>
+            </circle>
           );
         })}
         <text x="60" y="56" textAnchor="middle" className="fill-foreground text-[16px] font-bold">
@@ -412,18 +562,13 @@ export function Progress() {
     "unavailable",
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [plan, setPlan] = useState<FitnessPlan>(() => getActivePlan());
-  const [logs, setLogs] = useState<DailyLog[]>(() => getDailyLogs());
-  const [nutritionData, setNutritionData] = useState<WeeklyNutrition[]>(
-    () => fallbackWeeklyNutrition,
-  );
-  const [workoutData, setWorkoutData] = useState<WeeklyWorkoutCompletion[]>(
-    () => fallbackWeeklyWorkoutCompletion,
-  );
-  const [macroData, setMacroData] = useState<MacroBreakdown[]>(
-    () => fallbackMacroBreakdown,
-  );
-  const [measurements, setMeasurements] = useState(() => getMeasurements());
+  const [progressError, setProgressError] = useState<string | null>(null);
+  const [plan, setPlan] = useState<FitnessProgramSummary>(emptyPlan);
+  const [logs, setLogs] = useState<DailyLog[]>([]);
+  const [nutritionData, setNutritionData] = useState<WeeklyNutrition[]>([]);
+  const [workoutData, setWorkoutData] = useState<WeeklyWorkoutCompletion[]>([]);
+  const [macroData, setMacroData] = useState<MacroBreakdown[]>([]);
+  const [measurements, setMeasurements] = useState<MeasurementEntry[]>([]);
   const latestMeasurement = measurements[measurements.length - 1];
   const [form, setForm] = useState({
     weight: latestMeasurement?.weight.toString() ?? "",
@@ -432,9 +577,10 @@ export function Progress() {
     hips: latestMeasurement?.hips.toString() ?? "",
   });
 
-  useEffect(() => {
+  function loadSummary(): () => void {
     let cancelled = false;
-
+    setIsLoading(true);
+    setProgressError(null);
     fetchFitnessSummary()
       .then((summary) => {
         if (cancelled) return;
@@ -446,8 +592,14 @@ export function Progress() {
         setMacroData(summary.macroBreakdown);
         setMeasurements(summary.measurements);
       })
-      .catch(() => {
-        // Keep the page usable for local demos only when the API/database is unavailable.
+      .catch((error) => {
+        if (cancelled) return;
+        setDataSource("unavailable");
+        setProgressError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load PostgreSQL-backed progress data.",
+        );
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -456,6 +608,10 @@ export function Progress() {
     return () => {
       cancelled = true;
     };
+  }
+
+  useEffect(() => {
+    return loadSummary();
   }, []);
 
   useEffect(() => {
@@ -476,9 +632,19 @@ export function Progress() {
       logs.length > 0
         ? logs.reduce((sum, log) => sum + log.calories, 0) / logs.length
         : plan.calorieTarget;
-    const adherence = Math.round(
-      clamp(100 - (Math.abs(averageCalories - plan.calorieTarget) / plan.calorieTarget) * 100, 0, 100),
-    );
+    const adherence =
+      plan.calorieTarget > 0
+        ? Math.round(
+            clamp(
+              100 -
+                (Math.abs(averageCalories - plan.calorieTarget) /
+                  plan.calorieTarget) *
+                  100,
+              0,
+              100,
+            ),
+          )
+        : 0;
 
     return {
       currentStreak: getCurrentStreak(logs),
@@ -494,21 +660,24 @@ export function Progress() {
   const statCards = [
     {
       label: "Current streak",
-      value: `${stats.currentStreak} days`,
+      value: stats.currentStreak,
+      suffix: " days",
       description: "Training logs in a row",
       icon: Flame,
       accent: "from-orange-400 to-rose-500",
     },
     {
       label: "Plan adherence",
-      value: `${stats.adherence}%`,
+      value: stats.adherence,
+      suffix: "%",
       description: "Average calorie target fit",
       icon: ClipboardCheck,
       accent: "from-sky-400 to-indigo-500",
     },
     {
       label: "Workouts completed",
-      value: stats.workoutsCompleted.toString(),
+      value: stats.workoutsCompleted,
+      suffix: "",
       description: "Across the last 4 weeks",
       icon: Dumbbell,
       accent: "from-violet-500 to-fuchsia-500",
@@ -537,7 +706,7 @@ export function Progress() {
       detail:
         dataSource === "database"
           ? "Generated from shared database plan and logs"
-          : "Database unavailable; showing local demo data",
+          : (progressError ?? "Database-backed progress data is unavailable"),
       icon: Sparkles,
     },
   ];
@@ -547,27 +716,40 @@ export function Progress() {
   }
 
   function saveMeasurementEntry(): void {
-    const fallbackMeasurement = latestMeasurement ?? emptyMeasurement;
+    if (dataSource !== "database") {
+      setProgressError("Connect the API and PostgreSQL before saving measurements.");
+      return;
+    }
+
+    const baselineMeasurement = latestMeasurement ?? emptyMeasurement;
     const nextEntry: MeasurementEntry = {
       date: "Today",
-      weight: Number(form.weight) || fallbackMeasurement.weight,
-      waist: Number(form.waist) || fallbackMeasurement.waist,
-      chest: Number(form.chest) || fallbackMeasurement.chest,
-      hips: Number(form.hips) || fallbackMeasurement.hips,
+      weight: Number(form.weight) || baselineMeasurement.weight,
+      waist: Number(form.waist) || baselineMeasurement.waist,
+      chest: Number(form.chest) || baselineMeasurement.chest,
+      hips: Number(form.hips) || baselineMeasurement.hips,
     };
-    const nextMeasurements = [...measurements.slice(-5), nextEntry];
-    setMeasurements(nextMeasurements);
-    saveMeasurements(nextMeasurements);
     void saveFitnessMeasurement({
       weight: nextEntry.weight,
       waist: nextEntry.waist,
       chest: nextEntry.chest,
       hips: nextEntry.hips,
-    }).then(setMeasurements).catch(() => undefined);
+    })
+      .then((nextMeasurements) => {
+        setProgressError(null);
+        setMeasurements(nextMeasurements);
+      })
+      .catch((error) => {
+        setProgressError(
+          error instanceof Error
+            ? error.message
+            : "Unable to save measurement to PostgreSQL.",
+        );
+      });
   }
 
   return (
-    <div className="relative -m-6 min-h-[calc(100vh-3.5rem)] overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.22),transparent_34%),radial-gradient(circle_at_82%_10%,rgba(168,85,247,0.22),transparent_30%),linear-gradient(180deg,#f8fbff_0%,#eef4ff_48%,#f8fafc_100%)] p-4 text-slate-950 sm:p-6 lg:p-8">
+    <div className="relative -m-3 min-h-[calc(100vh-3.5rem)] overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.22),transparent_34%),radial-gradient(circle_at_82%_10%,rgba(168,85,247,0.22),transparent_30%),linear-gradient(180deg,#f8fbff_0%,#eef4ff_48%,#f8fafc_100%)] p-4 text-slate-950 sm:-m-5 sm:p-6 lg:-m-6 lg:p-8">
       <style>{motionStyles}</style>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-white/70 to-transparent" />
       <div className="dev3-float pointer-events-none absolute left-[-5rem] top-20 h-56 w-56 rounded-full bg-cyan-300/25 blur-3xl" />
@@ -583,7 +765,7 @@ export function Progress() {
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-sm text-sky-100 backdrop-blur">
                 <Target className="h-4 w-4" />
-                Active plan: {plan.name}
+                Active program: {plan.name}
               </div>
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1.5 text-xs font-medium text-cyan-100 backdrop-blur sm:ml-2">
                 <span className={`h-2 w-2 rounded-full ${dataSource === "database" ? "bg-emerald-300" : "bg-amber-300"} ${isLoading ? "animate-pulse" : ""}`} />
@@ -603,14 +785,8 @@ export function Progress() {
               </div>
             </div>
             <div className="dev3-float relative min-h-[21rem] overflow-hidden rounded-[1.8rem] border border-white/15 bg-white/10 shadow-[0_28px_90px_-46px_rgba(14,165,233,0.9)] backdrop-blur-md [animation-duration:14s]">
-              <img
-                src={progressHeroImage}
-                alt="Athlete training in a modern gym"
-                className="absolute inset-0 h-full w-full object-cover"
-                loading="eager"
-                decoding="async"
-              />
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-950/78 via-slate-950/48 to-cyan-950/30" />
+              <FitnessHeroIllustration />
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-950/72 via-slate-950/34 to-cyan-950/20" />
               <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-slate-950/85 to-transparent" />
               <div className="relative flex h-full min-h-[21rem] flex-col justify-between p-4 sm:p-5">
                 <div className="ml-auto inline-flex w-fit items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-100/10 px-3 py-1.5 text-xs font-semibold text-cyan-50 backdrop-blur-md">
@@ -620,17 +796,21 @@ export function Progress() {
                 <div className="grid gap-3 rounded-3xl border border-white/10 bg-slate-950/45 p-4 backdrop-blur-xl sm:grid-cols-3">
                   <div>
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Calories target</p>
-                    <p className="mt-1 text-2xl font-semibold">{plan.calorieTarget}</p>
+                    <p className="mt-1 text-2xl font-semibold">
+                      {plan.calorieTarget || "-"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Protein target</p>
-                    <p className="mt-1 text-2xl font-semibold">{plan.proteinTarget}g</p>
+                    <p className="mt-1 text-2xl font-semibold">
+                      {plan.proteinTarget ? `${plan.proteinTarget}g` : "-"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Signal</p>
                     <p className="mt-1 inline-flex items-center gap-2 text-sm font-medium text-cyan-200">
                       <Gauge className="h-4 w-4" />
-                      {stats.adherence}% aligned
+                      <AnimatedNumber value={stats.adherence} suffix="% aligned" />
                     </p>
                   </div>
                 </div>
@@ -683,6 +863,46 @@ export function Progress() {
           })}
         </section>
 
+        {progressError && (
+          <section className="dev3-fade-up rounded-[1.4rem] border border-rose-200 bg-rose-50/90 p-4 text-rose-800 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm">{progressError}</p>
+              <Button
+                type="button"
+                onClick={loadSummary}
+                className="w-fit rounded-2xl bg-rose-700 px-4 text-white hover:bg-rose-800"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Retry
+              </Button>
+            </div>
+          </section>
+        )}
+
+        <section className="grid gap-3 md:grid-cols-3">
+          <div className={`${mutedPanelClass} dev3-card rounded-[1.5rem] p-4`}>
+            <ProgressRing value={stats.adherence} label="adherence" tone="cyan" />
+          </div>
+          <div className={`${mutedPanelClass} dev3-card rounded-[1.5rem] p-4`}>
+            <ProgressRing
+              value={
+                plan.workoutTargetPerWeek > 0
+                  ? Math.round((stats.workoutsCompleted / (plan.workoutTargetPerWeek * 4)) * 100)
+                  : 0
+              }
+              label="4-week training"
+              tone="violet"
+            />
+          </div>
+          <div className={`${mutedPanelClass} dev3-card rounded-[1.5rem] p-4`}>
+            <ProgressRing
+              value={latestMeasurement ? 100 : 0}
+              label="body data"
+              tone="emerald"
+            />
+          </div>
+        </section>
+
         <div className="grid gap-4 md:grid-cols-3">
           {statCards.map((stat, index) => {
             const Icon = stat.icon;
@@ -698,7 +918,9 @@ export function Progress() {
                   <div className="relative flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium text-slate-500">{stat.label}</p>
-                      <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{stat.value}</p>
+                      <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                        <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+                      </p>
                       <p className="mt-1 text-sm text-slate-500">{stat.description}</p>
                       <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-100">
                         <div className={`h-full rounded-full bg-gradient-to-r ${stat.accent}`} style={{ width: stat.label === "Workouts completed" ? "88%" : "100%" }} />
@@ -721,7 +943,7 @@ export function Progress() {
                 <div>
                   <CardTitle className="text-xl text-slate-950">Calories vs target</CardTitle>
                   <CardDescription className="mt-2 text-slate-500">
-                    Weekly average intake against {plan.calorieTarget} kcal/day
+                    Weekly average intake against {plan.calorieTarget || "-"} kcal/day
                   </CardDescription>
                 </div>
                 <div className="rounded-2xl bg-sky-100 p-3 text-sky-700">
@@ -770,13 +992,7 @@ export function Progress() {
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="relative min-h-36 overflow-hidden rounded-3xl border border-white/70 shadow-inner">
-                <img
-                  src={nutritionImage}
-                  alt="Balanced meal ingredients for nutrition tracking"
-                  className="absolute inset-0 h-full w-full object-cover"
-                  loading="lazy"
-                  decoding="async"
-                />
+                <NutritionIllustration />
                 <div className="absolute inset-0 bg-gradient-to-r from-slate-950/72 via-slate-950/28 to-transparent" />
                 <div className="relative max-w-xs p-4 text-white">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">Nutrition layer</p>
@@ -793,7 +1009,7 @@ export function Progress() {
             <CardHeader>
               <CardTitle className="text-xl text-slate-950">Body measurements</CardTitle>
               <CardDescription className="mt-2 text-slate-500">
-                Saved to PostgreSQL when available; local demo storage is used only without the API.
+                Saved directly to PostgreSQL for the active program context.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
@@ -813,6 +1029,7 @@ export function Progress() {
                 <Button
                   type="button"
                   onClick={saveMeasurementEntry}
+                  disabled={dataSource !== "database"}
                   className="rounded-2xl bg-slate-950 px-5 text-white shadow-lg shadow-slate-950/20 hover:bg-slate-800"
                 >
                   <Activity className="mr-2 h-4 w-4" />
@@ -825,6 +1042,11 @@ export function Progress() {
                   </span>
                 </div>
               </div>
+              {progressError && (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  {progressError}
+                </div>
+              )}
               <MeasurementTrend data={measurements} />
               <div className="flex flex-wrap gap-4 text-sm text-slate-500">
                 <span className="inline-flex items-center gap-2">

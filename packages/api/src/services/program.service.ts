@@ -1,33 +1,223 @@
-import { Program, DayPlan } from "../models";
+import { DayPlan, Exercise, Meal, MealItem, Program, Workout } from "../models";
+
+type DayPlanWithPreview = DayPlan & {
+  meals?: Array<Meal & { items?: MealItem[] }>;
+  workout?: Workout & { exercises?: Exercise[] };
+};
+
+type ProgramWithWeekPlan = Program & {
+  weekPlan?: DayPlanWithPreview[];
+};
+
+function formatProgram(program: ProgramWithWeekPlan) {
+  const weekPlan = [...(program.weekPlan ?? [])].sort(
+    (a, b) => a.dayNumber - b.dayNumber,
+  );
+  const workoutDays = weekPlan.filter((day) => day.workout);
+  const meals = weekPlan.flatMap((day) => day.meals ?? []);
+  const focus = Array.from(
+    new Set(
+      workoutDays
+        .map((day) => day.workout?.type)
+        .filter((type): type is string => Boolean(type)),
+    ),
+  );
+
+  return {
+    id: program.id,
+    slug: program.id,
+    title: program.title,
+    goal: program.goal,
+    level: program.level,
+    duration: program.duration,
+    durationWeeks: program.weeks,
+    daysPerWeek: workoutDays.length,
+    dailyCalories: program.calories,
+    color: program.color,
+    accent: program.accent,
+    startDate: program.startDate,
+    currentWeek: program.currentWeek,
+    currentDay: program.currentDay,
+    completedDays: program.completedDays,
+    totalDays: program.totalDays,
+    adherenceRate: program.adherenceRate,
+    mealCount: meals.length,
+    workoutCount: workoutDays.length,
+    focus,
+    tagline: `${program.goal} / ${program.duration}`,
+    description: `${program.level} ${program.goal.toLowerCase()} program with ${workoutDays.length} weekly workouts, ${meals.length} planned meals, and a ${program.calories} kcal daily target.`,
+    sampleWeek: weekPlan.map((day) => ({
+      id: day.id,
+      dayNumber: day.dayNumber,
+      label: day.label,
+      date: day.date,
+      isRestDay: day.isRestDay,
+      mealCount: day.meals?.length ?? 0,
+      workout: day.workout
+        ? {
+            id: day.workout.id,
+            name: day.workout.name,
+            type: day.workout.type,
+            duration: day.workout.duration,
+            exerciseCount: day.workout.exercises?.length ?? 0,
+          }
+        : null,
+    })),
+    sampleMeals: meals.slice(0, 6).map((meal) => ({
+      id: meal.id,
+      type: meal.type,
+      time: meal.time,
+      totalCalories: meal.totalCalories,
+      totalProtein: meal.totalProtein,
+      totalCarbs: meal.totalCarbs,
+      totalFat: meal.totalFat,
+      items: (meal.items ?? []).map((item) => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+      })),
+    })),
+  };
+}
+
+function readJsonField<T>(value: T | string | null): T | null {
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Maps a catalog `Program` row to the shape the web browse/detail pages expect.
  * (`weeks` -> `durationWeeks`, `calories` -> `dailyCalories`, etc.)
  */
 function serializeCatalogProgram(program: Program) {
+  const focus = readJsonField<string[]>(program.focus) ?? [];
+  const sampleWeek = readJsonField<
+    Array<{
+      day: string;
+      title: string;
+      focus: string;
+      durationMin: number;
+      rest: boolean;
+    }>
+  >(program.sampleWeek) ?? [];
+  const sampleMeals = readJsonField<
+    Array<{
+      name: string;
+      items: string;
+      calories: number;
+    }>
+  >(program.sampleMeals) ?? [];
+  const workoutDays = sampleWeek.filter((day) => !day.rest);
+
   return {
     id: program.id,
-    slug: program.slug,
+    slug: program.slug ?? program.id,
     title: program.title,
     goal: program.goal,
     level: program.level,
-    tagline: program.tagline,
-    description: program.description,
+    duration: program.duration,
     durationWeeks: program.weeks,
-    daysPerWeek: program.daysPerWeek,
+    daysPerWeek: program.daysPerWeek ?? workoutDays.length,
     dailyCalories: program.calories,
-    macros: program.macros,
-    focus: program.focus,
+    color: program.color,
+    accent: program.accent,
+    startDate: program.startDate,
+    currentWeek: program.currentWeek,
+    currentDay: program.currentDay,
+    completedDays: program.completedDays,
+    totalDays: program.totalDays ?? program.weeks * 7,
+    adherenceRate: program.adherenceRate,
+    mealCount: sampleMeals.length,
+    workoutCount: workoutDays.length,
+    macros: readJsonField(program.macros),
+    focus,
     equipment: program.equipment,
     image: program.image,
     rating: program.rating,
     enrolled: program.enrolled,
-    sampleWeek: program.sampleWeek,
-    sampleMeals: program.sampleMeals,
+    tagline: program.tagline ?? `${program.goal} / ${program.duration}`,
+    description:
+      program.description ??
+      `${program.level} ${program.goal.toLowerCase()} program with ${program.weeks} weeks of training.`,
+    sampleWeek: sampleWeek.map((day, index) => ({
+      id: `${program.id}-${day.day}`,
+      dayNumber: index + 1,
+      label: day.day,
+      date: "",
+      isRestDay: day.rest,
+      mealCount: 0,
+      workout: day.rest
+        ? null
+        : {
+            id: `${program.id}-${day.day}-workout`,
+            name: day.title,
+            type: day.focus,
+            duration: `${day.durationMin} min`,
+            exerciseCount: 0,
+          },
+    })),
+    sampleMeals: sampleMeals.map((meal, index) => ({
+      id: `${program.id}-meal-${index}`,
+      type: meal.name,
+      time: "",
+      totalCalories: meal.calories,
+      totalProtein: 0,
+      totalCarbs: 0,
+      totalFat: 0,
+      items: [
+        {
+          id: `${program.id}-meal-${index}-items`,
+          name: meal.items,
+          quantity: "",
+        },
+      ],
+    })),
   };
 }
 
 export const programService = {
+  async getPrograms(userId?: string) {
+    const programs = await Program.findAll({
+      where: userId ? { userId } : undefined,
+      order: [["createdAt", "DESC"]],
+      include: [
+        {
+          model: DayPlan,
+          as: "weekPlan",
+          separate: true,
+          order: [["dayNumber", "ASC"]],
+          include: [
+            {
+              model: Meal,
+              as: "meals",
+              separate: true,
+              order: [["sortOrder", "ASC"]],
+              include: [{ model: MealItem, as: "items" }],
+            },
+            {
+              model: Workout,
+              as: "workout",
+              include: [
+                {
+                  model: Exercise,
+                  as: "exercises",
+                  separate: true,
+                  order: [["sortOrder", "ASC"]],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    return programs.map((program) => formatProgram(program as ProgramWithWeekPlan));
+  },
+
   async getActiveProgram(userId: string) {
     const program = await Program.findOne({
       where: { userId },
@@ -35,6 +225,44 @@ export const programService = {
     });
     if (!program) throw new Error("No active program found");
     return program;
+  },
+
+  async getProgramDetail(programId: string) {
+    const program = await Program.findOne({
+      where: { id: programId },
+      include: [
+        {
+          model: DayPlan,
+          as: "weekPlan",
+          separate: true,
+          order: [["dayNumber", "ASC"]],
+          include: [
+            {
+              model: Meal,
+              as: "meals",
+              separate: true,
+              order: [["sortOrder", "ASC"]],
+              include: [{ model: MealItem, as: "items" }],
+            },
+            {
+              model: Workout,
+              as: "workout",
+              include: [
+                {
+                  model: Exercise,
+                  as: "exercises",
+                  separate: true,
+                  order: [["sortOrder", "ASC"]],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!program) throw new Error("Program not found");
+    return formatProgram(program as ProgramWithWeekPlan);
   },
 
   async getDayPlans(programId: string) {

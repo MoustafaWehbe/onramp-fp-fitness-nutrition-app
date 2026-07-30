@@ -5,7 +5,7 @@ export type FitnessAiChatRole = "user" | "assistant";
 export interface FitnessAiChatMessageAttributes {
   id: string;
   userId: string;
-  planId?: string;
+  programId?: string;
   role: FitnessAiChatRole;
   content: string;
   createdAt?: Date;
@@ -14,7 +14,7 @@ export interface FitnessAiChatMessageAttributes {
 
 export interface FitnessAiChatMessageCreationAttributes extends Optional<
   FitnessAiChatMessageAttributes,
-  "id" | "planId"
+  "id" | "programId"
 > {}
 
 export class FitnessAiChatMessage
@@ -26,7 +26,7 @@ export class FitnessAiChatMessage
 {
   declare id: string;
   declare userId: string;
-  declare planId: string | undefined;
+  declare programId: string | undefined;
   declare role: FitnessAiChatRole;
   declare content: string;
   declare readonly createdAt: Date;
@@ -46,10 +46,10 @@ export class FitnessAiChatMessage
           references: { model: "users", key: "id" },
           onDelete: "CASCADE",
         },
-        planId: {
+        programId: {
           type: DataTypes.UUID,
           allowNull: true,
-          references: { model: "fitness_plans", key: "id" },
+          references: { model: "programs", key: "id" },
           onDelete: "SET NULL",
         },
         role: {

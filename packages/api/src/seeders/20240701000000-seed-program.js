@@ -110,7 +110,7 @@ module.exports = {
           ],
         },
       ],
-      // Add remaining days 2-7 following the same pattern from your mockData.ts
+      // Add remaining days 2-7 following the same weekly plan pattern.
     };
 
     for (const [dayNum, meals] of Object.entries(mealsData)) {

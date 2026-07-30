@@ -1,21 +1,22 @@
 import { apiClient } from "./api-client";
 import type {
   DailyLog,
-  FitnessPlan,
+  FitnessProgramSummary,
   MacroBreakdown,
   MeasurementEntry,
   WeeklyNutrition,
   WeeklyWorkoutCompletion,
-} from "./fitness-mock-data";
+} from "./fitness-types";
 
 export interface FitnessChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  createdAt?: string;
 }
 
 export interface FitnessSummary {
-  activePlan: FitnessPlan;
+  activePlan: FitnessProgramSummary;
   dailyLogs: DailyLog[];
   weeklyNutrition: WeeklyNutrition[];
   weeklyWorkoutCompletion: WeeklyWorkoutCompletion[];

@@ -26,8 +26,8 @@ export function UsersList() {
         <p className="text-muted-foreground mt-1">{users.length} registered users</p>
       </div>
 
-      <div className="rounded-2xl border border-border overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-border">
+        <table className="min-w-[42rem] text-sm sm:w-full">
           <thead className="bg-secondary text-secondary-foreground">
             <tr>
               {["Name", "Email", "Role", "Joined"].map((h) => (

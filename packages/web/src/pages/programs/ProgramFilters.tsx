@@ -2,35 +2,27 @@ import { Search } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { Input } from "../../components/ui/input";
 import { Select } from "../../components/ui/select";
-import {
-  GOAL_LABELS,
-  LEVEL_LABELS,
-  type Goal,
-  type Level,
-} from "../../mocks/types";
+import { formatProgramLabel } from "../../lib/program-api";
 
 export interface ProgramFilterState {
   search: string;
-  goal: Goal | "all";
-  level: Level | "all";
+  goal: string;
+  level: string;
 }
 
 interface ProgramFiltersProps {
   value: ProgramFilterState;
+  goals: string[];
+  levels: string[];
   onChange: (next: ProgramFilterState) => void;
 }
 
-const goalChips: { value: Goal | "all"; label: string }[] = [
-  { value: "all", label: "All" },
-  ...(Object.entries(GOAL_LABELS) as [Goal, string][]).map(([value, label]) => ({
-    value,
-    label,
-  })),
-];
-
-const levelOptions = Object.entries(LEVEL_LABELS) as [Level, string][];
-
-export const ProgramFilters = ({ value, onChange }: ProgramFiltersProps) => (
+export const ProgramFilters = ({
+  value,
+  goals,
+  levels,
+  onChange,
+}: ProgramFiltersProps) => (
   <div className="flex flex-col gap-4">
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="relative w-full sm:max-w-xs">
@@ -46,36 +38,36 @@ export const ProgramFilters = ({ value, onChange }: ProgramFiltersProps) => (
       <Select
         value={value.level}
         onChange={(e) =>
-          onChange({ ...value, level: e.target.value as Level | "all" })
+          onChange({ ...value, level: e.target.value })
         }
         className="sm:w-44"
       >
         <option value="all">All levels</option>
-        {levelOptions.map(([val, label]) => (
-          <option key={val} value={val}>
-            {label}
+        {levels.map((level) => (
+          <option key={level} value={level}>
+            {formatProgramLabel(level)}
           </option>
         ))}
       </Select>
     </div>
 
     <div className="flex flex-wrap gap-2">
-      {goalChips.map((chip) => {
-        const active = value.goal === chip.value;
+      {["all", ...goals].map((goal) => {
+        const active = value.goal === goal;
         return (
           <button
-            key={chip.value}
+            key={goal}
             type="button"
             aria-pressed={active}
-            onClick={() => onChange({ ...value, goal: chip.value })}
+            onClick={() => onChange({ ...value, goal })}
             className={cn(
               "rounded-full border px-4 py-1.5 font-heading text-xs font-semibold uppercase tracking-wide transition-colors",
               active
                 ? "border-primary bg-primary text-ink"
                 : "border-border text-muted-foreground hover:border-primary hover:text-foreground",
             )}
-          >
-            {chip.label}
+              >
+            {goal === "all" ? "All" : formatProgramLabel(goal)}
           </button>
         );
       })}

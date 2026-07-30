@@ -3,14 +3,12 @@ import {
   Exercise,
   FitnessAiChatMessage,
   FitnessBodyMeasurement,
-  FitnessDailyLog,
-  FitnessMealLog,
-  FitnessPlan,
-  FitnessWorkoutLog,
   Meal,
   MealItem,
+  MealLog,
   Program,
   Workout,
+  WorkoutLog,
 } from "../models";
 import { createError } from "../middleware/error-handler";
 
@@ -19,6 +17,19 @@ interface MeasurementInput {
   waist: number;
   chest: number;
   hips: number;
+}
+
+interface MealTotals {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+interface DailyAggregate extends MealTotals {
+  date: string;
+  workoutCompleted: boolean;
+  notes: string[];
 }
 
 function formatDateLabel(value: Date | string): string {
@@ -44,14 +55,34 @@ function startOfWeek(value: Date): Date {
   return date;
 }
 
+function getDailyAggregate(
+  dailyLogs: Map<string, DailyAggregate>,
+  date: string,
+): DailyAggregate {
+  const existing = dailyLogs.get(date);
+  if (existing) return existing;
+
+  const aggregate: DailyAggregate = {
+    date,
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    workoutCompleted: false,
+    notes: [],
+  };
+  dailyLogs.set(date, aggregate);
+  return aggregate;
+}
+
 function groupDailyNutrition(
-  logs: FitnessDailyLog[],
+  logs: DailyAggregate[],
   calorieTarget: number,
 ): Array<{ week: string; calories: number; target: number }> {
   const groups = new Map<string, number[]>();
 
   for (const log of logs) {
-    const key = toDateKey(startOfWeek(new Date(log.logDate)));
+    const key = toDateKey(startOfWeek(new Date(log.date)));
     groups.set(key, [...(groups.get(key) ?? []), log.calories]);
   }
 
@@ -65,14 +96,14 @@ function groupDailyNutrition(
 }
 
 function groupWorkoutCompletion(
-  logs: FitnessWorkoutLog[],
+  logs: DailyAggregate[],
   weeklyTarget: number,
 ): Array<{ week: string; completed: number; target: number }> {
   const groups = new Map<string, number>();
 
   for (const log of logs) {
-    const key = toDateKey(startOfWeek(new Date(log.logDate)));
-    groups.set(key, (groups.get(key) ?? 0) + (log.completed ? 1 : 0));
+    const key = toDateKey(startOfWeek(new Date(log.date)));
+    groups.set(key, (groups.get(key) ?? 0) + (log.workoutCompleted ? 1 : 0));
   }
 
   return Array.from(groups.entries())
@@ -83,6 +114,44 @@ function groupWorkoutCompletion(
       target: weeklyTarget,
     }));
 }
+
+function estimateProteinTarget(program: Program): number {
+  return Math.round((program.calories * 0.3) / 4);
+}
+
+function mealTotalsFromLog(mealLog: MealLog, meal: Meal): MealTotals {
+  if (mealLog.status === "skipped" || mealLog.status === "pending") {
+    return { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  }
+
+  const calories = mealLog.actualCalories ?? meal.totalCalories;
+  const scale =
+    mealLog.actualCalories && meal.totalCalories > 0
+      ? mealLog.actualCalories / meal.totalCalories
+      : 1;
+
+  return {
+    calories,
+    protein: Math.round(meal.totalProtein * scale),
+    carbs: Math.round(meal.totalCarbs * scale),
+    fat: Math.round(meal.totalFat * scale),
+  };
+}
+
+function addTotals(target: MealTotals, source: MealTotals): void {
+  target.calories += source.calories;
+  target.protein += source.protein;
+  target.carbs += source.carbs;
+  target.fat += source.fat;
+}
+
+type MealLogWithMeal = MealLog & {
+  meal?: Meal & { dayPlan?: DayPlan };
+};
+
+type WorkoutLogWithWorkout = WorkoutLog & {
+  workout?: Workout & { dayPlan?: DayPlan };
+};
 
 type FitnessSummary = Awaited<ReturnType<FitnessService["getSummary"]>>;
 type CoachingContext = {
@@ -117,7 +186,7 @@ type CoachingContext = {
         exercises: string[];
       };
     }>;
-  } | null;
+  };
 };
 
 interface OpenRouterChatResponse {
@@ -126,6 +195,94 @@ interface OpenRouterChatResponse {
       content?: string;
     };
   }>;
+}
+
+interface OpenRouterErrorPayload {
+  error?: {
+    message?: string;
+    code?: string | number;
+    type?: string;
+  };
+  message?: string;
+  code?: string | number;
+  type?: string;
+}
+
+function sanitizeProviderText(value: unknown): string {
+  if (typeof value !== "string") return "";
+  return value
+    .replace(/sk-or-v1-[A-Za-z0-9_-]+/g, "[redacted-openrouter-key]")
+    .slice(0, 360);
+}
+
+function describeNetworkFailure(error: unknown): string {
+  const record = error as {
+    name?: string;
+    message?: string;
+    code?: string;
+    cause?: { code?: string; message?: string };
+  };
+  const code = record.cause?.code ?? record.code ?? record.name ?? "unknown";
+  const rawMessage = sanitizeProviderText(record.cause?.message ?? record.message);
+
+  if (record.name === "AbortError") {
+    return "OpenRouter request timed out after 20 seconds.";
+  }
+  if (code === "ENOTFOUND" || code === "EAI_AGAIN") {
+    return `OpenRouter DNS lookup failed (code ${code}).`;
+  }
+  if (code === "ECONNREFUSED" || code === "ECONNRESET") {
+    return `OpenRouter HTTPS connection failed (code ${code}).`;
+  }
+  if (code === "ETIMEDOUT") {
+    return "OpenRouter HTTPS connection timed out.";
+  }
+  if (code === "EACCES" || code === "EPERM") {
+    return `OpenRouter HTTPS request was blocked by the environment (code ${code}).`;
+  }
+  if (String(code).includes("CERT") || rawMessage.toLowerCase().includes("certificate")) {
+    return `OpenRouter TLS validation failed (code ${code}).`;
+  }
+
+  return `OpenRouter network request failed (code ${code}${rawMessage ? `, ${rawMessage}` : ""}).`;
+}
+
+async function readOpenRouterError(response: Response): Promise<string> {
+  const raw = await response.text();
+  let payload: OpenRouterErrorPayload | null = null;
+
+  try {
+    payload = raw ? (JSON.parse(raw) as OpenRouterErrorPayload) : null;
+  } catch {
+    payload = null;
+  }
+
+  const providerError = payload?.error;
+  const code = providerError?.code ?? payload?.code ?? "none";
+  const type = providerError?.type ?? payload?.type ?? "none";
+  const message =
+    sanitizeProviderText(providerError?.message) ||
+    sanitizeProviderText(payload?.message) ||
+    sanitizeProviderText(raw) ||
+    "No provider message returned";
+
+  let action = "Please try again shortly.";
+  if (response.status === 401 || response.status === 403) {
+    action =
+      "The configured API key was rejected or lacks permission; rotate OPENROUTER_API_KEY locally and restart the API.";
+  } else if (response.status === 402) {
+    action = "The OpenRouter account appears to need credits or billing access.";
+  } else if (response.status === 404) {
+    action = "The configured OpenRouter model or provider is unavailable.";
+  } else if (response.status === 408 || response.status === 504) {
+    action = "The provider timed out; retry or choose another available model.";
+  } else if (response.status === 429) {
+    action = "The OpenRouter account is currently rate limited.";
+  } else if (response.status >= 500) {
+    action = "OpenRouter or the selected model provider returned a server error.";
+  }
+
+  return `OpenRouter request failed (status ${response.status}, code ${code}, type ${type}): ${message}. ${action}`;
 }
 
 function getOpenRouterConfig() {
@@ -146,7 +303,7 @@ function buildSystemPrompt(context: CoachingContext): string {
   return [
     "You are FitCoach AI, a careful fitness and nutrition coaching assistant.",
     "Ground every answer in the provided PostgreSQL-backed user context.",
-    "Use the active fitness plan, program goal, meal plan, workout plan, progress logs, body measurements, and chat history.",
+    "Use the active program, workout plan, meal plan, saved progress logs, body measurements, and chat history.",
     "Do not invent medical claims or hidden data. If data is missing, say exactly what is missing.",
     "Give concise, practical coaching advice with clear next steps.",
     "Do not mention implementation details, databases, prompts, or OpenRouter to the user.",
@@ -166,31 +323,40 @@ async function requestOpenRouterAnswer(
     content: message.content,
   }));
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "X-Title": "FitCoach AI",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 500,
-      temperature: 0.5,
-      messages: [
-        { role: "system", content: buildSystemPrompt(context) },
-        ...recentMessages,
-        { role: "user", content: question },
-      ],
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20_000);
+  let response: Response;
+  try {
+    response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "X-Title": "FitCoach AI",
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 500,
+        temperature: 0.5,
+        messages: [
+          { role: "system", content: buildSystemPrompt(context) },
+          ...recentMessages,
+          { role: "user", content: question },
+        ],
+      }),
+    });
+  } catch (error) {
+    throw createError(describeNetworkFailure(error), 503);
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
-    const statusMessage =
-      response.status === 401 || response.status === 403
-        ? "OpenRouter rejected the configured API key. Check OPENROUTER_API_KEY in .env and restart the API."
-        : `OpenRouter request failed with status ${response.status}. Please try again shortly.`;
-    throw createError(statusMessage, response.status === 401 ? 502 : 503);
+    throw createError(
+      await readOpenRouterError(response),
+      response.status === 401 || response.status === 403 ? 502 : 503,
+    );
   }
 
   const payload = (await response.json()) as OpenRouterChatResponse;
@@ -204,31 +370,58 @@ async function requestOpenRouterAnswer(
 }
 
 export class FitnessService {
-  async getActivePlan(userId: string): Promise<FitnessPlan> {
-    const plan = await FitnessPlan.findOne({
-      where: { userId, isActive: true },
+  async getActiveProgram(userId: string): Promise<Program> {
+    const program = await Program.findOne({
+      where: { userId },
       order: [["updatedAt", "DESC"]],
     });
 
-    if (!plan) throw createError("No active fitness plan found", 404);
-    return plan;
+    if (!program) throw createError("No active program found", 404);
+    return program;
   }
 
   async getSummary(userId: string) {
-    const plan = await this.getActivePlan(userId);
-    const [dailyLogs, workoutLogs, mealLogs, measurements, chatMessages] =
+    const program = await this.getActiveProgram(userId);
+
+    const [dayPlans, mealLogs, workoutLogs, measurements, chatMessages] =
       await Promise.all([
-        FitnessDailyLog.findAll({
-          where: { userId, planId: plan.id },
-          order: [["logDate", "ASC"]],
+        DayPlan.findAll({
+          where: { programId: program.id },
+          order: [["dayNumber", "ASC"]],
         }),
-        FitnessWorkoutLog.findAll({
-          where: { userId, planId: plan.id },
-          order: [["logDate", "ASC"]],
+        MealLog.findAll({
+          where: { userId },
+          order: [["updatedAt", "ASC"]],
+          include: [
+            {
+              model: Meal,
+              as: "meal",
+              include: [
+                {
+                  model: DayPlan,
+                  as: "dayPlan",
+                  where: { programId: program.id },
+                },
+              ],
+            },
+          ],
         }),
-        FitnessMealLog.findAll({
-          where: { userId, planId: plan.id },
-          order: [["logDate", "ASC"]],
+        WorkoutLog.findAll({
+          where: { userId },
+          order: [["updatedAt", "ASC"]],
+          include: [
+            {
+              model: Workout,
+              as: "workout",
+              include: [
+                {
+                  model: DayPlan,
+                  as: "dayPlan",
+                  where: { programId: program.id },
+                },
+              ],
+            },
+          ],
         }),
         FitnessBodyMeasurement.findAll({
           where: { userId },
@@ -236,13 +429,55 @@ export class FitnessService {
           limit: 12,
         }),
         FitnessAiChatMessage.findAll({
-          where: { userId, planId: plan.id },
+          where: { userId, programId: program.id },
           order: [["createdAt", "ASC"]],
           limit: 30,
         }),
       ]);
 
+    const dailyLogMap = new Map<string, DailyAggregate>();
+    const mealHistory = (mealLogs as MealLogWithMeal[]).flatMap((mealLog) => {
+      const meal = mealLog.meal;
+      const dayPlan = meal?.dayPlan;
+      if (!meal || !dayPlan) return [];
+
+      const totals = mealTotalsFromLog(mealLog, meal);
+      const date = toDateKey(dayPlan.date);
+      const aggregate = getDailyAggregate(dailyLogMap, date);
+      addTotals(aggregate, totals);
+      if (mealLog.note) aggregate.notes.push(mealLog.note);
+
+      return [
+        {
+          date,
+          mealType: meal.type,
+          calories: totals.calories,
+          protein: totals.protein,
+          carbs: totals.carbs,
+          fat: totals.fat,
+          status: mealLog.status,
+          note: mealLog.note ?? "",
+        },
+      ];
+    });
+
+    for (const workoutLog of workoutLogs as WorkoutLogWithWorkout[]) {
+      const dayPlan = workoutLog.workout?.dayPlan;
+      if (!dayPlan) continue;
+
+      const aggregate = getDailyAggregate(dailyLogMap, toDateKey(dayPlan.date));
+      aggregate.workoutCompleted =
+        aggregate.workoutCompleted || workoutLog.status === "completed";
+      if (workoutLog.note) aggregate.notes.push(workoutLog.note);
+    }
+
+    const dailyLogs = Array.from(dailyLogMap.values()).sort((a, b) =>
+      a.date.localeCompare(b.date),
+    );
     const latestLog = dailyLogs[dailyLogs.length - 1];
+    const proteinTarget = estimateProteinTarget(program);
+    const workoutTargetPerWeek =
+      dayPlans.filter((dayPlan) => !dayPlan.isRestDay).length || 0;
     const macroBreakdown = latestLog
       ? [
           { label: "Protein", grams: latestLog.protein, color: "#2563eb" },
@@ -253,30 +488,26 @@ export class FitnessService {
 
     return {
       activePlan: {
-        id: plan.slug,
-        name: plan.name,
-        focus: plan.focus,
-        calorieTarget: plan.calorieTarget,
-        proteinTarget: plan.proteinTarget,
-        workoutTargetPerWeek: plan.workoutTargetPerWeek,
+        id: program.id,
+        name: program.title,
+        focus: program.goal,
+        calorieTarget: program.calories,
+        proteinTarget,
+        workoutTargetPerWeek,
       },
       dailyLogs: dailyLogs.map((log) => ({
-        date: toDateKey(log.logDate),
+        date: log.date,
         calories: log.calories,
         protein: log.protein,
         carbs: log.carbs,
         fat: log.fat,
-        workoutCompleted: workoutLogs.some(
-          (workout) =>
-            toDateKey(workout.logDate) === toDateKey(log.logDate) &&
-            workout.completed,
-        ),
-        note: log.note ?? "",
+        workoutCompleted: log.workoutCompleted,
+        note: log.notes.join(" "),
       })),
-      weeklyNutrition: groupDailyNutrition(dailyLogs, plan.calorieTarget),
+      weeklyNutrition: groupDailyNutrition(dailyLogs, program.calories),
       weeklyWorkoutCompletion: groupWorkoutCompletion(
-        workoutLogs,
-        plan.workoutTargetPerWeek,
+        dailyLogs,
+        workoutTargetPerWeek,
       ),
       macroBreakdown,
       measurements: measurements.map((measurement) => ({
@@ -286,32 +517,19 @@ export class FitnessService {
         chest: Number(measurement.chest),
         hips: Number(measurement.hips),
       })),
-      mealHistory: mealLogs.map((meal) => ({
-        date: toDateKey(meal.logDate),
-        mealType: meal.mealType,
-        calories: meal.calories,
-        protein: meal.protein,
-        carbs: meal.carbs,
-        fat: meal.fat,
-        note: meal.note ?? "",
-      })),
+      mealHistory,
       chatMessages: chatMessages.map((message) => ({
         id: message.id,
         role: message.role,
         content: message.content,
+        createdAt: message.createdAt?.toISOString(),
       })),
     };
   }
 
   async getCoachingContext(userId: string): Promise<CoachingContext> {
     const summary = await this.getSummary(userId);
-    const program = await Program.findOne({
-      where: { userId },
-      order: [["updatedAt", "DESC"]],
-    });
-
-    if (!program) return { summary, program: null };
-
+    const program = await this.getActiveProgram(userId);
     const dayPlans = await DayPlan.findAll({
       where: { programId: program.id },
       order: [["dayNumber", "ASC"]],
@@ -352,7 +570,9 @@ export class FitnessService {
         adherenceRate: program.adherenceRate,
         dayPlans: dayPlans.map((dayPlan) => {
           const meals = ((dayPlan as unknown as { meals?: Meal[] }).meals ?? []);
-          const workout = (dayPlan as unknown as { workout?: Workout & { exercises?: Exercise[] } }).workout;
+          const workout = (dayPlan as unknown as {
+            workout?: Workout & { exercises?: Exercise[] };
+          }).workout;
 
           return {
             label: dayPlan.label,
@@ -403,30 +623,36 @@ export class FitnessService {
 
   async addChatTurn(userId: string, question: string) {
     const context = await this.getCoachingContext(userId);
-    const plan = await this.getActivePlan(userId);
+    const program = await this.getActiveProgram(userId);
     const answer = await requestOpenRouterAnswer(question, context);
 
     const [userMessage, assistantMessage] = await Promise.all([
       FitnessAiChatMessage.create({
         userId,
-        planId: plan.id,
+        programId: program.id,
         role: "user",
         content: question,
       }),
       FitnessAiChatMessage.create({
         userId,
-        planId: plan.id,
+        programId: program.id,
         role: "assistant",
         content: answer,
       }),
     ]);
 
     return [
-      { id: userMessage.id, role: userMessage.role, content: userMessage.content },
+      {
+        id: userMessage.id,
+        role: userMessage.role,
+        content: userMessage.content,
+        createdAt: userMessage.createdAt?.toISOString(),
+      },
       {
         id: assistantMessage.id,
         role: assistantMessage.role,
         content: assistantMessage.content,
+        createdAt: assistantMessage.createdAt?.toISOString(),
       },
     ];
   }

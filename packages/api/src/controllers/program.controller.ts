@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { programService } from "../services/program.service";
 
 export const programController = {
-  async list(_req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getAll(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const programs = await programService.listCatalog();
       res.json({ data: programs });
@@ -28,6 +28,16 @@ export const programController = {
   async getActive(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const program = await programService.getActiveProgram(req.user!.userId);
+      res.json({ data: program });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async getDetail(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { programId } = req.params;
+      const program = await programService.getProgramDetail(programId as string);
       res.json({ data: program });
     } catch (err) {
       next(err);
