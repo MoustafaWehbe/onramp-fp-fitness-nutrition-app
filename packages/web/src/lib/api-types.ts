@@ -445,3 +445,41 @@ export type ApiWorkoutLog = {
   status: "pending" | "completed" | "skipped" | "modified";
   note: string | null;
 };
+
+export type Gender = "male" | "female" | "other";
+export type ActivityLevel = "sedentary" | "light" | "moderate" | "active" | "very_active";
+export type FitnessGoal = "lose_weight" | "gain_muscle" | "maintain" | "improve_endurance" | "general_health";
+
+export type ApiUserProfile = {
+  id: string;
+  userId: string;
+  age: number;
+  gender: Gender;
+  heightCm: number;
+  weightKg: number;
+  targetWeightKg: number | null;
+  activityLevel: ActivityLevel;
+  goal: FitnessGoal;
+  injuries: string | null;
+  dietaryNotes: string | null;
+  completedAt: string | null;
+};
+
+export type CoachRequestStatus = "pending" | "accepted" | "rejected" | "completed";
+
+export type ApiCoach = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+export type ApiCoachRequest = {
+  id: string;
+  userId: string;
+  coachId: string | null;
+  coach?: ApiCoach | null;
+  status: CoachRequestStatus;
+  message: string | null;
+  respondedAt: string | null;
+  createdAt: string;
+};

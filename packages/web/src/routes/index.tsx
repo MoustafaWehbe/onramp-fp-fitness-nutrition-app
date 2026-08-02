@@ -10,7 +10,6 @@ import { ROUTES } from "../constants/routes";
 import { Landing } from "../pages/landing/Landing";
 import { Login } from "../pages/auth/Login";
 import { Register } from "../pages/auth/Register";
-import { Onboarding } from "../pages/onboarding/Onboarding";
 import { Dashboard } from "../pages/dashboard/Dashboard";
 import { Settings } from "../pages/dashboard/Settings";
 import { Progress } from "../pages/progress/Progress";
@@ -20,7 +19,8 @@ import { DailyLog } from "../pages/daily-log/DailyLog";
 import { BrowsePrograms } from "../pages/programs/BrowsePrograms";
 import { ProgramDetail } from "../pages/programs/ProgramDetail";
 import { NotFound } from "../pages/NotFound";
-
+import { Onboarding } from "../pages/onboarding/Onboarding";
+import { RequestCoach } from "../pages/onboarding/RequestCoach";
 
 
 export const AppRoutes = () => (
@@ -35,7 +35,7 @@ export const AppRoutes = () => (
     </Route>
 
     <Route element={<ProtectedRoute />}>
-      <Route path={ROUTES.onboarding} element={<Onboarding />} />
+      
 
       <Route element={<AppLayout />}>
         <Route path={ROUTES.dashboard} element={<Dashboard />} />
@@ -46,6 +46,8 @@ export const AppRoutes = () => (
         <Route path={ROUTES.settings} element={<Settings />} />
         <Route path={ROUTES.programs} element={<BrowsePrograms />} />
         <Route path={ROUTES.programDetail()} element={<ProgramDetail />} />
+        <Route path={ROUTES.onboarding} element={<Onboarding />} />
+      <Route path={ROUTES.requestCoach} element={<RequestCoach />} />
       </Route>
     </Route>
     

@@ -89,6 +89,8 @@ export class Program
 {
   declare id: string;
   declare userId: string | null;
+  declare coachId: string | null;
+  declare coachRequestId: string | null;
   declare title: string;
   declare goal: string;
   declare duration: string;
@@ -155,6 +157,8 @@ export class Program
         enrolled: { type: DataTypes.INTEGER, allowNull: true },
         sampleWeek: { type: DataTypes.JSONB, allowNull: true },
         sampleMeals: { type: DataTypes.JSONB, allowNull: true },
+        coachId: { type: DataTypes.UUID, allowNull: true },
+        coachRequestId: { type: DataTypes.UUID, allowNull: true },  
       },
       {
         sequelize,

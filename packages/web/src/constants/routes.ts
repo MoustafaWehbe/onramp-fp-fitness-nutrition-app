@@ -11,6 +11,7 @@ export const ROUTES = {
   dailyLog: "/daily-log",
   settings: "/settings",
   programs: "/programs",
+  requestCoach: "/request-coach",
   programDetail: (slug = ":slug") => `/programs/${slug}`,
 } as const;
 

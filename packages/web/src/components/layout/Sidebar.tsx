@@ -11,6 +11,7 @@ import {
   Settings,
   Sparkles,
   Users,
+  UserCheck,
 } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
 import { cn } from "../../lib/utils";
@@ -18,7 +19,7 @@ import { useAuth } from "../../hooks/useAuth";
 
 const navItems = [
   { to: ROUTES.dashboard, label: "Dashboard", icon: LayoutDashboard },
-  { to: ROUTES.programs, label: "Browse Programs", icon: BookOpen },
+  { to: ROUTES.onboarding, label: "My Profile", icon: BookOpen },
   { to: ROUTES.myPlan, label: "My Plan", icon: CalendarDays },
   { to: ROUTES.dailyLog, label: "Daily Log", icon: ClipboardList },
   { to: ROUTES.progress, label: "Progress", icon: ChartNoAxesCombined },

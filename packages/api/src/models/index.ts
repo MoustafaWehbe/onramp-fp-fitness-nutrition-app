@@ -9,4 +9,6 @@ export { MealLog, WorkoutLog, WorkoutLogExercise } from "./log";
 export {
   FitnessBodyMeasurement,
   FitnessAiChatMessage,
+  UserProfile,
+  CoachRequest,
 } from "@starter-kit/shared";
