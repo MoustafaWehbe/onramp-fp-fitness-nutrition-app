@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
-import { Loader2, SearchX } from "lucide-react";
-import { apiClient } from "../../lib/api-client";
-import type { Program } from "../../mocks/types";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AlertCircle, Loader2, SearchX } from "lucide-react";
+import { Button } from "../../components/ui/button";
 import { usePreferences } from "../../hooks/usePreferences";
-import { ProgramPlanCard } from "./ProgramPlanCard";
+import {
+  fetchPrograms,
+  type ProgramCatalogItem,
+} from "../../lib/program-api";
 import { ProgramFilters, type ProgramFilterState } from "./ProgramFilters";
+import { ProgramPlanCard } from "./ProgramPlanCard";
 
 const initialFilters: ProgramFilterState = {
   search: "",
@@ -19,30 +22,34 @@ export const BrowsePrograms = () => {
     goal: preferences.goal ?? "all",
     level: preferences.level ?? "all",
   }));
-
-  const [programs, setPrograms] = useState<Program[]>([]);
+  const [programs, setPrograms] = useState<ProgramCatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadPrograms = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setPrograms(await fetchPrograms());
+    } catch {
+      setError("Programs could not be loaded from PostgreSQL.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(false);
-    apiClient
-      .get<{ data: Program[] }>("/programs")
-      .then(({ data }) => {
-        if (!cancelled) setPrograms(data.data);
-      })
-      .catch(() => {
-        if (!cancelled) setError(true);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    void loadPrograms();
+  }, [loadPrograms]);
+
+  const goals = useMemo(
+    () => Array.from(new Set(programs.map((program) => program.goal))).sort(),
+    [programs],
+  );
+  const levels = useMemo(
+    () => Array.from(new Set(programs.map((program) => program.level))).sort(),
+    [programs],
+  );
 
   const results = useMemo(() => {
     const q = filters.search.trim().toLowerCase();
@@ -51,6 +58,7 @@ export const BrowsePrograms = () => {
         !q ||
         p.title.toLowerCase().includes(q) ||
         p.tagline.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q) ||
         p.focus.some((f) => f.toLowerCase().includes(q));
       const matchesGoal = filters.goal === "all" || p.goal === filters.goal;
       const matchesLevel = filters.level === "all" || p.level === filters.level;
@@ -69,27 +77,39 @@ export const BrowsePrograms = () => {
           Choose your program
         </h1>
         <p className="mt-2 max-w-xl text-muted-foreground">
-          Each plan includes a full weekly meal and workout schedule — pick one
+          Each plan includes a full weekly meal and workout schedule - pick one
           and it becomes your day-by-day plan.
         </p>
       </div>
 
-      <ProgramFilters value={filters} onChange={setFilters} />
+      <ProgramFilters
+        value={filters}
+        goals={goals}
+        levels={levels}
+        onChange={setFilters}
+      />
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-20 text-center text-muted-foreground">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <p className="text-sm">Loading programs…</p>
+        <div className="grid items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-[420px] animate-pulse border border-border bg-card"
+            />
+          ))}
         </div>
       ) : error ? (
         <div className="flex flex-col items-center justify-center gap-3 border border-dashed border-border py-20 text-center">
-          <SearchX className="h-10 w-10 text-muted-foreground" />
-          <p className="font-heading text-lg font-bold uppercase">
-            Couldn't load programs
-          </p>
+          <AlertCircle className="h-10 w-10 text-destructive" />
+          <p className="font-heading text-lg font-bold uppercase">{error}</p>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Something went wrong fetching the catalog. Please try again.
+            The catalog only renders real API data. Retry when the API/database is
+            available.
           </p>
+          <Button onClick={() => void loadPrograms()} className="gap-2">
+            <Loader2 className="h-4 w-4" />
+            Retry
+          </Button>
         </div>
       ) : (
         <>

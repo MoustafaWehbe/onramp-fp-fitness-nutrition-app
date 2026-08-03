@@ -8,12 +8,22 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
-import {
-  GOAL_LABELS,
-  LEVEL_LABELS,
-  type Goal,
-  type Level,
-} from "../mocks/types";
+
+export type Goal = "lose_weight" | "build_muscle" | "maintain" | "strength";
+export type Level = "beginner" | "intermediate" | "advanced";
+
+export const GOAL_LABELS: Record<Goal, string> = {
+  lose_weight: "Lose weight",
+  build_muscle: "Build muscle",
+  maintain: "Maintain",
+  strength: "Strength",
+};
+
+export const LEVEL_LABELS: Record<Level, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+};
 
 export interface ChoiceOption<T extends string> {
   value: T;

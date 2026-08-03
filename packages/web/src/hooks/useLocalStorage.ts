@@ -12,8 +12,6 @@ export const useLocalStorage = <T,>(key: string, initial: T) => {
 
   const isFirstRun = useRef(true);
 
-  // Rehydrate state from storage when the key changes so we don't keep
-  // showing (and persisting) the previous key's value.
   useEffect(() => {
     if (isFirstRun.current) {
       isFirstRun.current = false;
@@ -33,7 +31,7 @@ export const useLocalStorage = <T,>(key: string, initial: T) => {
     try {
       window.localStorage.setItem(key, JSON.stringify(value));
     } catch {
-      // ignore write failures (quota, private mode)
+      // Ignore write failures from quota limits or private browsing modes.
     }
   }, [key, value]);
 
@@ -41,7 +39,7 @@ export const useLocalStorage = <T,>(key: string, initial: T) => {
     try {
       window.localStorage.removeItem(key);
     } catch {
-      // ignore
+      // Ignore storage failures.
     }
     setValue(initial);
   }, [key, initial]);

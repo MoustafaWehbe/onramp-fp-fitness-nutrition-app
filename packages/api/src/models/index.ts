@@ -7,10 +7,6 @@ export { Meal, MealItem } from "./meal";
 export { Workout, Exercise } from "./workout";
 export { MealLog, WorkoutLog, WorkoutLogExercise } from "./log";
 export {
-  FitnessPlan,
-  FitnessDailyLog,
-  FitnessWorkoutLog,
-  FitnessMealLog,
   FitnessBodyMeasurement,
   FitnessAiChatMessage,
 } from "@starter-kit/shared";

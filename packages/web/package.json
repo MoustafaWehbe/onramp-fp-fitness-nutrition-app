@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "node scripts/vite-dev.mjs",
+    "build": "tsc && node scripts/vite-build.mjs",
     "preview": "vite preview",
-    "test": "vitest run --coverage",
-    "test:watch": "vitest",
+    "test": "node scripts/vitest-run.mjs",
+    "test:watch": "vitest --config vite.config.ts",
     "lint": "eslint 'src/**/*.{ts,tsx}'",
     "clean": "rm -rf dist",
     "gen:api-types": "openapi-typescript ../api/openapi.yaml -o src/lib/api-types.ts"

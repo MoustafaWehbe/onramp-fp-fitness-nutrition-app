@@ -4,14 +4,20 @@ import {
   Flame,
   type LucideIcon,
 } from "lucide-react";
-import type { Goal } from "../mocks/types";
 
-export const GOAL_ACCENTS: Record<Goal, string> = {
-  lose_weight: "from-brand-green to-emerald-400",
-  build_muscle: "from-fuchsia-500 to-violet-500",
-  maintain: "from-sky-400 to-cyan-400",
-  strength: "from-amber-400 to-orange-500",
-};
+export function getGoalAccent(goal: string): string {
+  const key = goal.toLowerCase();
+  if (key.includes("fat") || key.includes("loss") || key.includes("weight")) {
+    return "from-brand-green to-emerald-400";
+  }
+  if (key.includes("muscle") || key.includes("build")) {
+    return "from-fuchsia-500 to-violet-500";
+  }
+  if (key.includes("strength")) {
+    return "from-amber-400 to-orange-500";
+  }
+  return "from-sky-400 to-cyan-400";
+}
 
 export interface ProgramStat {
   icon: LucideIcon;
