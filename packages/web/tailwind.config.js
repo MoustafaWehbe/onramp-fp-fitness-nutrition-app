@@ -46,6 +46,7 @@ export default {
       },
       fontFamily: {
         sans: ["Alegreya Sans", "system-ui", "sans-serif"],
+        serif: ["Alegreya", "Georgia", "serif"],
         heading: ["Oswald", "Alegreya Sans", "sans-serif"],
         display: ["Anton", "Oswald", "sans-serif"],
       },

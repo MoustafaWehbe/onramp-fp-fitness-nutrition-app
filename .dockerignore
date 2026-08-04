@@ -1,0 +1,37 @@
+node_modules
+**/node_modules
+
+.git
+.gitignore
+.github
+
+.turbo
+**/.turbo
+
+dist
+**/dist
+build
+out
+coverage
+**/coverage
+*.tsbuildinfo
+
+# Patterns without a slash match the context root only, so the nested forms are
+# not redundant -- packages/web/.env needs them. Also matches .env.example;
+# nothing in .env* belongs in a build context.
+.env
+.env.*
+**/.env
+**/.env.*
+
+docs
+*.md
+*.log
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+**/Dockerfile
+.dockerignore
+docker-compose.yml

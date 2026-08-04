@@ -13,6 +13,8 @@ const apiProxyTarget =
 const server = await createServer({
   root,
   configFile: false,
+  // configFile:false skips vite.config.ts, so envDir must be repeated here.
+  envDir: repoRoot,
   plugins: [react()],
   resolve: {
     alias: {
