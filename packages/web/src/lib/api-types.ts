@@ -467,10 +467,24 @@ export type ApiUserProfile = {
 
 export type CoachRequestStatus = "pending" | "accepted" | "rejected" | "completed";
 
+export type ApiCoachProfile = {
+  id: string;
+  userId: string;
+  title: string | null;
+  bio: string | null;
+  specialties: string[] | null;
+  yearsExperience: number | null;
+  certifications: string[] | null;
+  rating: number | null;
+  clientsCount: number;
+  avatarUrl: string | null;
+};
+
 export type ApiCoach = {
   id: string;
   name: string;
   email: string;
+  coachProfile?: ApiCoachProfile | null;
 };
 
 export type ApiCoachRequest = {

@@ -11,4 +11,5 @@ export {
   FitnessAiChatMessage,
   UserProfile,
   CoachRequest,
+  CoachProfile,
 } from "@starter-kit/shared";

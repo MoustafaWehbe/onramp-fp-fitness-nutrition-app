@@ -15,7 +15,7 @@ import { FitnessBodyMeasurement } from "./FitnessBodyMeasurement";
 import { FitnessAiChatMessage } from "./FitnessAiChatMessage";
 import { UserProfile } from "./UserProfile";
 import { CoachRequest } from "./CoachRequest";
-
+ import { CoachProfile } from "./CoachProfile";
 export {
   User,
   Session,
@@ -33,6 +33,7 @@ export {
   FitnessAiChatMessage,
   UserProfile,
   CoachRequest,
+  CoachProfile,
 };
 
 export function initModels(sequelize: Sequelize): void {
@@ -144,4 +145,9 @@ export function initModels(sequelize: Sequelize): void {
   // Program <-> CoachRequest (the request that produced this program)
   CoachRequest.hasOne(Program, { foreignKey: "coachRequestId", as: "program" });
   Program.belongsTo(CoachRequest, { foreignKey: "coachRequestId", as: "coachRequest" });
+
+    CoachProfile.initModel(sequelize);
+    // association:
+    User.hasOne(CoachProfile, { foreignKey: "userId", as: "coachProfile" });
+    CoachProfile.belongsTo(User, { foreignKey: "userId", as: "user" });
 }

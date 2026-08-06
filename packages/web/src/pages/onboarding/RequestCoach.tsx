@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useCoachRequest } from "../../hooks/useCoachRequest";
 import { useCoaches } from "../../hooks/useCoaches";
-import { UserCheck, Clock, CheckCircle2 } from "lucide-react";
+import { useUserProfile } from "../../hooks/useUserProfile";
+import { UserCheck, Clock, CheckCircle2, Star, Award, Users } from "lucide-react";
 
 export function RequestCoach() {
   const { request, isLoading: requestLoading, requestCoach } = useCoachRequest();
   const { coaches, isLoading: coachesLoading } = useCoaches();
+  const { profile } = useUserProfile();
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,29 +64,110 @@ export function RequestCoach() {
         </p>
       </div>
 
+      {/* ── Your profile summary ── */}
+      {profile ? (
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Your Profile
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Goal</p>
+              <p className="text-sm font-semibold capitalize text-card-foreground">
+                {profile.goal.replace(/_/g, " ")}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Activity</p>
+              <p className="text-sm font-semibold capitalize text-card-foreground">
+                {profile.activityLevel.replace(/_/g, " ")}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Height / Weight</p>
+              <p className="text-sm font-semibold text-card-foreground">
+                {profile.heightCm}cm · {profile.weightKg}kg
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Age</p>
+              <p className="text-sm font-semibold text-card-foreground">{profile.age}</p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-border bg-secondary/40 p-4 text-sm text-muted-foreground">
+          You haven't completed your profile yet — coaches will see this info too.{" "}
+          <a href="/onboarding" className="font-semibold text-primary underline">
+            Complete it now
+          </a>
+        </div>
+      )}
+
+      {/* ── Coach cards ── */}
       {coaches.length === 0 ? (
         <p className="text-sm text-muted-foreground">No coaches are available right now.</p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {coaches.map((coach) => (
-            <button
-              key={coach.id}
-              onClick={() => setSelectedCoachId(coach.id)}
-              className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition ${
-                selectedCoachId === coach.id
-                  ? "border-primary bg-primary/5 shadow-sm"
-                  : "border-border bg-card hover:bg-secondary"
-              }`}
-            >
-              <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-secondary text-secondary-foreground">
-                <UserCheck className="h-5 w-5" />
-              </span>
-              <div className="min-w-0">
-                <p className="truncate font-semibold text-card-foreground text-sm">{coach.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{coach.email}</p>
-              </div>
-            </button>
-          ))}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {coaches.map((coach) => {
+            const cp = coach.coachProfile;
+            const selected = selectedCoachId === coach.id;
+            return (
+              <button
+                key={coach.id}
+                onClick={() => setSelectedCoachId(coach.id)}
+                className={`rounded-2xl border p-4 text-left transition ${
+                  selected ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:bg-secondary"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-xl bg-secondary text-secondary-foreground">
+                    <UserCheck className="h-6 w-6" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-card-foreground text-sm">{coach.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {cp?.title ?? "Fitness Coach"}
+                    </p>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                      {cp?.rating != null && (
+                        <span className="flex items-center gap-1">
+                          <Star className="h-3 w-3 fill-primary text-primary" /> {cp.rating.toFixed(1)}
+                        </span>
+                      )}
+                      {cp?.yearsExperience != null && (
+                        <span className="flex items-center gap-1">
+                          <Award className="h-3 w-3" /> {cp.yearsExperience}y exp
+                        </span>
+                      )}
+                      {cp?.clientsCount != null && cp.clientsCount > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3 w-3" /> {cp.clientsCount} clients
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {cp?.bio && (
+                  <p className="mt-3 line-clamp-2 text-xs text-muted-foreground">{cp.bio}</p>
+                )}
+
+                {cp?.specialties && cp.specialties.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {cp.specialties.map((s) => (
+                      <span
+                        key={s}
+                        className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
 
