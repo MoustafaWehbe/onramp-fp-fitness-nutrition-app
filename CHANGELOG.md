@@ -27,7 +27,7 @@ How to update this file:
   `programs`.
 - Coach discovery at `GET /coaches`, returning the fields the listing shows —
   photo, name, gender, age, years of experience and rating.
-- Coach profile management at `GET`/`PUT /coach-profile`.
+- Coach profile management at `GET`/`PATCH /coach-profile`.
 - Coach request flow: a client sends a request with an optional message, and the
   coach it was addressed to can accept or decline it.
 

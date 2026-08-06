@@ -92,7 +92,7 @@ path that does not exist.
 |--------|------|---------|
 | `GET` | `/coaches` | Discovery listing. No email addresses — it is open to any authenticated client |
 | `GET` | `/coach-profile` | The signed-in coach's own profile |
-| `PUT` | `/coach-profile` | Upsert, through an allowlist schema so `rating` and `clientsCount` cannot be self-set |
+| `PATCH` | `/coach-profile` | Upsert, through an allowlist schema so `rating` and `clientsCount` cannot be self-set. `PATCH` because every field is optional and omitted fields are left alone |
 | `POST` | `/coach-requests` | Client sends a request |
 | `GET` | `/coach-requests/mine` | Client's latest request |
 | `GET` | `/coach-requests/pending` | Requests addressed to this coach only |

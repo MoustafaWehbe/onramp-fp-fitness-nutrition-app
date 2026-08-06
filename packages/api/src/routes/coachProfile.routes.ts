@@ -8,7 +8,8 @@ import { upsertCoachProfileSchema } from "../schemas/coach.schemas";
 const router = Router();
 
 router.get("/", authenticate, authorize("coach"), coachProfileController.getMine);
-router.put(
+// PATCH, not PUT: every field is optional and an omitted one is left as it is.
+router.patch(
   "/",
   authenticate,
   authorize("coach"),
