@@ -19,11 +19,11 @@ RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev
 
 FROM deps AS build
 WORKDIR /app
-COPY packages/shared  ./packages/shared
-COPY packages/workers ./packages/workers
-# shared first: workers' tsconfig.build.json aliases it to ../shared/dist/src.
+COPY packages/shared ./packages/shared
+COPY packages/api    ./packages/api
+# shared first: api's tsconfig.build.json aliases it to ../shared/dist/src.
 RUN npm run build --workspace=@starter-kit/shared
-RUN npm run build --workspace=@starter-kit/workers
+RUN npm run build --workspace=@starter-kit/api
 
 FROM node:${NODE_VERSION} AS runtime
 WORKDIR /app
@@ -32,9 +32,13 @@ ENV NODE_ENV=production
 # Whole prod tree, not just node_modules: it carries the workspace package.json
 # files that the @starter-kit/* symlinks resolve `main` through.
 COPY --from=prod-deps --chown=node:node /app ./
-COPY --from=build --chown=node:node /app/packages/shared/dist  ./packages/shared/dist
-COPY --from=build --chown=node:node /app/packages/workers/dist ./packages/workers/dist
+COPY --from=build --chown=node:node /app/packages/shared/dist ./packages/shared/dist
+COPY --from=build --chown=node:node /app/packages/api/dist    ./packages/api/dist
 
 USER node
+EXPOSE 3000
 
-CMD ["node", "packages/workers/dist/index.js"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
+CMD ["node", "packages/api/dist/server.js"]

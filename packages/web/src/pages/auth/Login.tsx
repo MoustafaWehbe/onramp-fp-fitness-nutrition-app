@@ -98,7 +98,7 @@ export const Login = () => {
       <GoogleSignInButton onError={setError} />
 
       <p className="mt-8 text-sm text-muted-foreground">
-        New to FitCoach AI?{" "}
+        New to FitCoach?{" "}
         <Link
           to={ROUTES.register}
           className="font-medium text-foreground underline-offset-4 hover:text-primary hover:underline"

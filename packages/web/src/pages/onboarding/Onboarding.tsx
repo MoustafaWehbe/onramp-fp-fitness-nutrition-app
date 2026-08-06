@@ -196,7 +196,7 @@ export const Onboarding = () => {
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         <Button type="submit" disabled={isSaving} className="w-full">
-          {isSaving ? "Saving..." : "Request a Coach"}
+          {isSaving ? "Saving..." : "Continue"}
         </Button>
       </form>
     </div>

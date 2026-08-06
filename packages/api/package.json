@@ -15,13 +15,13 @@
     "db:seed": "sequelize-cli db:seed:all"
   },
   "dependencies": {
-    "@asteasolutions/zod-to-openapi": "^7.3.4",
-    "@starter-kit/shared": "*",
-    "@types/cookie-parser": "^1.4.10",
-    "bcrypt": "^6.0.0",
-    "bullmq": "^5.12.0",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
+     "@asteasolutions/zod-to-openapi": "^7.3.4",
+  "@starter-kit/shared": "*",
+  "@types/cookie-parser": "^1.4.10",
+  "bcrypt": "^6.0.0",
+  "bullmq": "^5.12.0",
+  "cookie-parser": "^1.4.7",
+  "cors": "^2.8.5",
     "dotenv": "^16.4.0",
     "express": "^4.21.0",
     "express-rate-limit": "^7.4.0",
@@ -36,6 +36,7 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.0",

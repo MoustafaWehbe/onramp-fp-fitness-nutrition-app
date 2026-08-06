@@ -31,7 +31,13 @@ app.use(express.urlencoded({ extended: true }));
 
 // ─── Logging ──────────────────────────────────────────────────────────────────
 if (process.env.NODE_ENV !== "test") {
-  app.use(morgan("dev"));
+  app.use(
+    morgan(process.env.NODE_ENV === "production" ? "combined" : "dev", {
+      // The container HEALTHCHECK probes /health every 30s; logging it buries
+      // real traffic.
+      skip: (req) => req.path === "/health",
+    }),
+  );
 }
 
 // ─── Rate limiting ────────────────────────────────────────────────────────────
