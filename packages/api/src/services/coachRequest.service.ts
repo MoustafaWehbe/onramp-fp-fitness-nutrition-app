@@ -17,21 +17,20 @@ export const coachRequestService = {
     return CoachRequest.create({ userId, coachId, message: message ?? null });
   },
 
-  async listPending() {
-    return CoachRequest.findAll({
-      where: { status: "pending" },
-      include: [
-        {
-          model: User,
-          as: "user",
-          attributes: ["id", "name", "email"],
-          include: [{ model: UserProfile, as: "profile" }],
-        },
-        { model: User, as: "coach", attributes: ["id", "name", "email"] },
-      ],
-      order: [["createdAt", "ASC"]],
-    });
-  },
+  async listPending(coachId: string) {
+  return CoachRequest.findAll({
+    where: { status: "pending", coachId },
+    include: [
+      {
+        model: User,
+        as: "user",
+        attributes: ["id", "name", "email"],
+        include: [{ model: UserProfile, as: "profile" }],
+      },
+    ],
+    order: [["createdAt", "ASC"]],
+  });
+},
 
   async accept(coachRequestId: string, coachId: string) {
     const request = await CoachRequest.findByPk(coachRequestId);

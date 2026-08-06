@@ -23,13 +23,13 @@ export const coachRequestController = {
   },
 
   async listPending(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const requests = await coachRequestService.listPending();
-      res.json({ data: requests });
-    } catch (err) {
-      next(err);
-    }
-  },
+  try {
+    const requests = await coachRequestService.listPending(req.user!.userId);
+    res.json({ data: requests });
+  } catch (err) {
+    next(err);
+  }
+},
 
   async accept(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
