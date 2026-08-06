@@ -37,6 +37,10 @@ export {
   FitnessAiChatMessage,
 };
 
+export type { ProgramStatus } from "./Program";
+export type { CoachRequestStatus } from "./CoachRequest";
+export type { Gender, ActivityLevel, FitnessGoal } from "./UserProfile";
+
 export function initModels(sequelize: Sequelize): void {
   User.initModel(sequelize);
   Session.initModel(sequelize);

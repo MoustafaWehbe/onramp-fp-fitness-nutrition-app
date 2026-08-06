@@ -175,6 +175,13 @@ module.exports = {
       references: { model: "coach_requests", key: "id" },
       onDelete: "SET NULL",
     });
+    // One program per accepted request. `CoachRequest.hasOne(Program)` claims
+    // this; without the constraint only the application enforces it.
+    await queryInterface.addIndex("programs", ["coach_request_id"], {
+      name: "programs_coach_request_id_unique",
+      unique: true,
+      where: { coach_request_id: { [Sequelize.Op.ne]: null } },
+    });
 
     await queryInterface.addColumn("programs", "status", {
       type: Sequelize.ENUM("draft", "published"),
@@ -194,6 +201,10 @@ module.exports = {
       `DROP TYPE IF EXISTS "enum_programs_status";`,
     );
 
+    await queryInterface.removeIndex(
+      "programs",
+      "programs_coach_request_id_unique",
+    );
     await queryInterface.removeColumn("programs", "coach_request_id");
     await queryInterface.removeIndex("programs", "programs_coach_id");
     await queryInterface.removeColumn("programs", "coach_id");

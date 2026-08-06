@@ -42,8 +42,9 @@ How to update this file:
 
 ### Fixed
 
-- Two clients could hold a pending coach request at the same time. The rule is
-  now held by a partial unique index rather than a read-then-insert.
+- A client could end up with several pending coach requests at once. The
+  one-at-a-time rule is now held by a partial unique index rather than by a
+  read-then-insert that two concurrent requests could both pass.
 - Rolling back the coach profile seeder deleted every coach profile, including
   real ones.
 

@@ -76,10 +76,11 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    // Scoped to the seeded rows. A bare bulkDelete would take real coaches'
-    // profiles with it.
+    // Scoped to the ids this seeder generates, not to the coaches' user_ids: a
+    // profile created by hand for a seeded coach is skipped on the way up, so
+    // deleting by user_id on the way down would take it with us.
     await queryInterface.bulkDelete("coach_profiles", {
-      user_id: Object.values(byEmail),
+      id: PROFILES.map((p) => profileId(byEmail[p.email])),
     });
   },
 };

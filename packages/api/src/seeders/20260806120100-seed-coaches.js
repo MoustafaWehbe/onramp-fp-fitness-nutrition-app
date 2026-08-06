@@ -31,16 +31,17 @@ module.exports = {
 
   /** @type {import('sequelize-cli').Migration} */
   async up(queryInterface) {
-    // These are sign-in ready accounts sharing one password. Outside local
-    // development the password must be supplied explicitly, so a stray
-    // `db:seed:all` cannot hand a coach login to anyone who reads the repo.
-    const isDevelopment =
-      (process.env.NODE_ENV ?? "development") === "development";
+    // These are sign-in ready accounts sharing one password. The default is
+    // only allowed when NODE_ENV says development explicitly — an unset
+    // NODE_ENV on a staging or production container must not fall through to
+    // it, or a stray `db:seed:all` hands a coach login to anyone who can read
+    // this file.
+    const isDevelopment = process.env.NODE_ENV === "development";
     const password = process.env.SEED_COACH_PASSWORD;
 
     if (!isDevelopment && !password) {
       throw new Error(
-        "Refusing to seed demo coaches without SEED_COACH_PASSWORD outside development.",
+        "Refusing to seed demo coaches: set NODE_ENV=development, or provide SEED_COACH_PASSWORD.",
       );
     }
 

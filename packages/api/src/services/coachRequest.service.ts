@@ -1,9 +1,26 @@
 import { UniqueConstraintError } from "sequelize";
 import { CoachRequest, User, UserProfile } from "../models";
 import { createError } from "../middleware/error-handler";
+import type { CoachRequestStatus } from "@starter-kit/shared";
 
 /** Neither side needs the other's email to work through a request. */
 const PUBLIC_USER_FIELDS = ["id", "name"] as const;
+
+/**
+ * What a coach needs to judge a request. Listed explicitly so a column added
+ * to user_profiles later is not exposed here by default.
+ */
+const REVIEW_PROFILE_FIELDS = [
+  "age",
+  "gender",
+  "heightCm",
+  "weightKg",
+  "targetWeightKg",
+  "activityLevel",
+  "goal",
+  "injuries",
+  "dietaryNotes",
+] as const;
 
 export const coachRequestService = {
   async create(userId: string, coachId: string, message?: string) {
@@ -38,7 +55,13 @@ export const coachRequestService = {
           model: User,
           as: "user",
           attributes: [...PUBLIC_USER_FIELDS],
-          include: [{ model: UserProfile, as: "profile" }],
+          include: [
+            {
+              model: UserProfile,
+              as: "profile",
+              attributes: [...REVIEW_PROFILE_FIELDS],
+            },
+          ],
         },
       ],
       order: [["createdAt", "ASC"]],
@@ -46,13 +69,39 @@ export const coachRequestService = {
   },
 
   async accept(coachRequestId: string, coachId: string) {
-    const request = await this.findOwnPending(coachRequestId, coachId);
-    return request.update({ status: "accepted", respondedAt: new Date() });
+    return this.resolve(coachRequestId, coachId, "accepted");
   },
 
   async decline(coachRequestId: string, coachId: string) {
-    const request = await this.findOwnPending(coachRequestId, coachId);
-    return request.update({ status: "rejected", respondedAt: new Date() });
+    return this.resolve(coachRequestId, coachId, "rejected");
+  },
+
+  /**
+   * One conditional update carries both the ownership check and the
+   * pending-only check, so two concurrent handlers cannot each read `pending`
+   * and then write a different terminal status. A miss is diagnosed
+   * afterwards, purely to tell 404 and 409 apart.
+   */
+  async resolve(
+    coachRequestId: string,
+    coachId: string,
+    status: Extract<CoachRequestStatus, "accepted" | "rejected">,
+  ) {
+    const [affected, rows] = await CoachRequest.update(
+      { status, respondedAt: new Date() },
+      {
+        where: { id: coachRequestId, coachId, status: "pending" },
+        returning: true,
+      },
+    );
+
+    if (affected > 0) return rows[0];
+
+    const existing = await CoachRequest.findByPk(coachRequestId);
+    if (!existing || existing.coachId !== coachId) {
+      throw createError("Coach request not found.", 404);
+    }
+    throw createError("This request has already been handled.", 409);
   },
 
   async getForUser(userId: string) {
@@ -63,20 +112,5 @@ export const coachRequestService = {
         { model: User, as: "coach", attributes: [...PUBLIC_USER_FIELDS] },
       ],
     });
-  },
-
-  /**
-   * A coach must never reach a request that was not addressed to them. Both
-   * transitions go through here so neither can drift.
-   */
-  async findOwnPending(coachRequestId: string, coachId: string) {
-    const request = await CoachRequest.findByPk(coachRequestId);
-    if (!request || request.coachId !== coachId) {
-      throw createError("Coach request not found.", 404);
-    }
-    if (request.status !== "pending") {
-      throw createError("This request has already been handled.", 409);
-    }
-    return request;
   },
 };
