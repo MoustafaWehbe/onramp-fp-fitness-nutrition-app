@@ -23,6 +23,8 @@ module.exports = {
       calories: 1850,
       color: "#6366f1",
       accent: "#a5b4fc",
+      // Explicit: programs.status defaults to `draft` for the coach builder.
+      status: "published",
       start_date: "2025-05-01",
       current_week: 7,
       current_day: 3,

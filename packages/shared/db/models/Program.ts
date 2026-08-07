@@ -20,9 +20,14 @@ export interface ProgramSampleMeal {
   calories: number;
 }
 
+export type ProgramStatus = "draft" | "published";
+
 export interface ProgramAttributes {
   id: string;
   userId: string | null;
+  coachId: string | null;
+  coachRequestId: string | null;
+  status: ProgramStatus;
   title: string;
   goal: string;
   duration: string;
@@ -60,6 +65,9 @@ export interface ProgramCreationAttributes
     ProgramAttributes,
     | "id"
     | "userId"
+    | "coachId"
+    | "coachRequestId"
+    | "status"
     | "startDate"
     | "totalDays"
     | "currentWeek"
@@ -91,6 +99,7 @@ export class Program
   declare userId: string | null;
   declare coachId: string | null;
   declare coachRequestId: string | null;
+  declare status: ProgramStatus;
   declare title: string;
   declare goal: string;
   declare duration: string;
@@ -130,6 +139,13 @@ export class Program
           primaryKey: true,
         },
         userId: { type: DataTypes.UUID, allowNull: true },
+        coachId: { type: DataTypes.UUID, allowNull: true },
+        coachRequestId: { type: DataTypes.UUID, allowNull: true },
+        status: {
+          type: DataTypes.ENUM("draft", "published"),
+          allowNull: false,
+          defaultValue: "draft",
+        },
         title: { type: DataTypes.STRING, allowNull: false },
         goal: { type: DataTypes.STRING, allowNull: false },
         duration: { type: DataTypes.STRING, allowNull: false },
@@ -157,8 +173,6 @@ export class Program
         enrolled: { type: DataTypes.INTEGER, allowNull: true },
         sampleWeek: { type: DataTypes.JSONB, allowNull: true },
         sampleMeals: { type: DataTypes.JSONB, allowNull: true },
-        coachId: { type: DataTypes.UUID, allowNull: true },
-        coachRequestId: { type: DataTypes.UUID, allowNull: true },  
       },
       {
         sequelize,

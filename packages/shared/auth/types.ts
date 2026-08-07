@@ -1,4 +1,5 @@
 export type UserRole = "admin" | "user" | "coach";
+
 export interface JwtPayload {
   userId: string;
   email: string;

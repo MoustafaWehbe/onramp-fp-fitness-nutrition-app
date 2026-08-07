@@ -14,12 +14,16 @@ import { WorkoutLogExercise } from "./WorkoutLogExercise";
 import { FitnessBodyMeasurement } from "./FitnessBodyMeasurement";
 import { FitnessAiChatMessage } from "./FitnessAiChatMessage";
 import { UserProfile } from "./UserProfile";
+import { CoachProfile } from "./CoachProfile";
 import { CoachRequest } from "./CoachRequest";
- import { CoachProfile } from "./CoachProfile";
+
 export {
   User,
   Session,
   RefreshToken,
+  UserProfile,
+  CoachProfile,
+  CoachRequest,
   Program,
   DayPlan,
   Meal,
@@ -31,15 +35,19 @@ export {
   WorkoutLogExercise,
   FitnessBodyMeasurement,
   FitnessAiChatMessage,
-  UserProfile,
-  CoachRequest,
-  CoachProfile,
 };
+
+export type { ProgramStatus } from "./Program";
+export type { CoachRequestStatus } from "./CoachRequest";
+export type { Gender, ActivityLevel, FitnessGoal } from "./UserProfile";
 
 export function initModels(sequelize: Sequelize): void {
   User.initModel(sequelize);
   Session.initModel(sequelize);
   RefreshToken.initModel(sequelize);
+  UserProfile.initModel(sequelize);
+  CoachProfile.initModel(sequelize);
+  CoachRequest.initModel(sequelize);
   Program.initModel(sequelize);
   DayPlan.initModel(sequelize);
   Meal.initModel(sequelize);
@@ -51,8 +59,6 @@ export function initModels(sequelize: Sequelize): void {
   WorkoutLogExercise.initModel(sequelize);
   FitnessBodyMeasurement.initModel(sequelize);
   FitnessAiChatMessage.initModel(sequelize);
-  UserProfile.initModel(sequelize);
-  CoachRequest.initModel(sequelize);
 
   User.hasMany(Session, { foreignKey: "userId", as: "sessions" });
   Session.belongsTo(User, { foreignKey: "userId", as: "user" });
@@ -61,8 +67,34 @@ export function initModels(sequelize: Sequelize): void {
   Session.hasMany(RefreshToken, { foreignKey: "sessionId", as: "refreshTokens" });
   RefreshToken.belongsTo(Session, { foreignKey: "sessionId", as: "session" });
 
+  User.hasOne(UserProfile, { foreignKey: "userId", as: "profile" });
+  UserProfile.belongsTo(User, { foreignKey: "userId", as: "user" });
+
+  User.hasOne(CoachProfile, { foreignKey: "userId", as: "coachProfile" });
+  CoachProfile.belongsTo(User, { foreignKey: "userId", as: "user" });
+
+  User.hasMany(CoachRequest, { foreignKey: "userId", as: "coachRequests" });
+  CoachRequest.belongsTo(User, { foreignKey: "userId", as: "user" });
+  User.hasMany(CoachRequest, {
+    foreignKey: "coachId",
+    as: "incomingCoachRequests",
+  });
+  CoachRequest.belongsTo(User, { foreignKey: "coachId", as: "coach" });
+
   User.hasMany(Program, { foreignKey: "userId", as: "programs" });
   Program.belongsTo(User, { foreignKey: "userId", as: "user" });
+
+  User.hasMany(Program, { foreignKey: "coachId", as: "coachedPrograms" });
+  Program.belongsTo(User, { foreignKey: "coachId", as: "coach" });
+
+  CoachRequest.hasOne(Program, {
+    foreignKey: "coachRequestId",
+    as: "program",
+  });
+  Program.belongsTo(CoachRequest, {
+    foreignKey: "coachRequestId",
+    as: "coachRequest",
+  });
 
   Program.hasMany(DayPlan, { foreignKey: "programId", as: "weekPlan" });
   DayPlan.belongsTo(Program, { foreignKey: "programId", as: "program" });
@@ -123,31 +155,4 @@ export function initModels(sequelize: Sequelize): void {
     foreignKey: "programId",
     as: "program",
   });
-
-  // ── Coach flow additions ──────────────────────────────────────────
-
-  // User <-> UserProfile (1:1)
-  User.hasOne(UserProfile, { foreignKey: "userId", as: "profile" });
-  UserProfile.belongsTo(User, { foreignKey: "userId", as: "user" });
-
-  // User (client) <-> CoachRequest (1:many, "coachRequests" as the requester)
-  User.hasMany(CoachRequest, { foreignKey: "userId", as: "coachRequests" });
-  CoachRequest.belongsTo(User, { foreignKey: "userId", as: "user" });
-
-  // User (coach) <-> CoachRequest (1:many, "assignedRequests" as the coach)
-  User.hasMany(CoachRequest, { foreignKey: "coachId", as: "assignedRequests" });
-  CoachRequest.belongsTo(User, { foreignKey: "coachId", as: "coach" });
-
-  // Program <-> User (coach) — separate alias from the existing client-side "user"
-  User.hasMany(Program, { foreignKey: "coachId", as: "coachedPrograms" });
-  Program.belongsTo(User, { foreignKey: "coachId", as: "coach" });
-
-  // Program <-> CoachRequest (the request that produced this program)
-  CoachRequest.hasOne(Program, { foreignKey: "coachRequestId", as: "program" });
-  Program.belongsTo(CoachRequest, { foreignKey: "coachRequestId", as: "coachRequest" });
-
-    CoachProfile.initModel(sequelize);
-    // association:
-    User.hasOne(CoachProfile, { foreignKey: "userId", as: "coachProfile" });
-    CoachProfile.belongsTo(User, { foreignKey: "userId", as: "user" });
 }

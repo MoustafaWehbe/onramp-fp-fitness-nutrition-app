@@ -239,6 +239,8 @@ module.exports = {
       sample_meals: JSON.stringify(p.sampleMeals),
       color: null,
       accent: null,
+      // Explicit: programs.status defaults to `draft` for the coach builder.
+      status: "published",
       start_date: null,
       current_week: 1,
       current_day: 1,
