@@ -17,9 +17,10 @@ import { cn } from "../../lib/utils";
 import { useAuth } from "../../hooks/useAuth";
 
 const navItems = [
+  { to: ROUTES.profile, label: "My Profile", icon: BookOpen },
   { to: ROUTES.dashboard, label: "Dashboard", icon: LayoutDashboard },
   { to: ROUTES.programs, label: "Browse Programs", icon: BookOpen },
-  { to: ROUTES.myPlan, label: "My Plan", icon: CalendarDays },
+  { to: ROUTES.requestCoach, label: "Request Coach", icon: Users },
   { to: ROUTES.dailyLog, label: "Daily Log", icon: ClipboardList },
   { to: ROUTES.progress, label: "Progress", icon: ChartNoAxesCombined },
   { to: ROUTES.aiAssistant, label: "AI Assistant", icon: Bot },

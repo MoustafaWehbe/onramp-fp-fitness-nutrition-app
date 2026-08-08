@@ -20,6 +20,7 @@ import { DailyLog } from "../pages/daily-log/DailyLog";
 import { BrowsePrograms } from "../pages/programs/BrowsePrograms";
 import { ProgramDetail } from "../pages/programs/ProgramDetail";
 import { NotFound } from "../pages/NotFound";
+import { RequestCoach } from "../pages/onboarding/RequestCoach";
 
 
 
@@ -35,9 +36,11 @@ export const AppRoutes = () => (
     </Route>
 
     <Route element={<ProtectedRoute />}>
-      <Route path={ROUTES.onboarding} element={<Onboarding />} />
 
       <Route element={<AppLayout />}>
+        <Route path={ROUTES.profile} element={<Onboarding />} />
+        <Route path={ROUTES.requestCoach} element={<RequestCoach />} />
+
         <Route path={ROUTES.dashboard} element={<Dashboard />} />
         <Route path={ROUTES.progress} element={<Progress />} />
         <Route path={ROUTES.aiAssistant} element={<AIAssistant />} />
