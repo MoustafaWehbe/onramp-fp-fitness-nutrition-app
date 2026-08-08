@@ -7,6 +7,8 @@ import { fitnessRouter } from "./fitness.routes";
 import { coachRouter } from "./coach.routes";
 import { coachProfileRouter } from "./coachProfile.routes";
 import { coachRequestRouter } from "./coachRequest.routes";
+import { userProfileRouter } from "./userProfile.routes";
+
 
 const router = Router();
 
@@ -18,5 +20,6 @@ router.use("/fitness", fitnessRouter);
 router.use("/coaches", coachRouter);
 router.use("/coach-profile", coachProfileRouter);
 router.use("/coach-requests", coachRequestRouter);
+router.use("/profile", userProfileRouter);
 
 export { router };
