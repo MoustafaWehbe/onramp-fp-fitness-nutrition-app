@@ -7,16 +7,16 @@ import {
   ChartNoAxesCombined,
   ClipboardList,
   Dumbbell,
+  Inbox,
   LayoutDashboard,
   Settings,
-  Sparkles,
   Users,
 } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
 import { cn } from "../../lib/utils";
 import { useAuth } from "../../hooks/useAuth";
 
-const navItems = [
+const clientNavItems = [
   { to: ROUTES.profile, label: "My Profile", icon: BookOpen },
   { to: ROUTES.dashboard, label: "Dashboard", icon: LayoutDashboard },
   { to: ROUTES.myPlan, label: "My Plan", icon: CalendarDays },
@@ -27,10 +27,20 @@ const navItems = [
   { to: ROUTES.settings, label: "Settings", icon: Settings },
 ];
 
+/** A coach never follows a plan, so none of the client nav applies to them. */
+const coachNavItems = [
+  { to: ROUTES.coachRequests, label: "Requests", icon: Inbox },
+  { to: ROUTES.coachPrograms, label: "Client Programs", icon: ClipboardList },
+  { to: ROUTES.settings, label: "Settings", icon: Settings },
+];
+
 const adminNavItems = [
   { to: "/admin", label: "Dashboard", icon: BarChart3 },
   { to: "/admin/users", label: "Users", icon: Users },
 ];
+
+const navItemsFor = (role: string | undefined) =>
+  role === "coach" ? coachNavItems : clientNavItems;
 
 function BrandMark() {
   return (
@@ -66,7 +76,7 @@ export function Sidebar() {
         <BrandMark />
       </div>
       <nav className="flex-1 space-y-1.5 p-3">
-        {navItems.map(({ to, label, icon: Icon }) => (
+        {navItemsFor(user?.role).map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
@@ -97,24 +107,16 @@ export function Sidebar() {
           </>
         )}
       </nav>
-      <div className="m-3 rounded-3xl border border-cyan-200/70 bg-cyan-50/70 p-4 text-slate-700">
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
-          <Sparkles className="h-4 w-4 text-cyan-600" />
-          PostgreSQL live
-        </div>
-        <p className="mt-2 text-xs leading-5 text-slate-500">
-          Dashboard, logs, progress, and AI context are loaded from the real
-          database.
-        </p>
-      </div>
     </aside>
   );
 }
 
 export function MobileNav() {
   const { user } = useAuth();
-  const items =
-    user?.role === "admin" ? [...navItems, ...adminNavItems] : navItems;
+  const items = [
+    ...navItemsFor(user?.role),
+    ...(user?.role === "admin" ? adminNavItems : []),
+  ];
 
   return (
     <nav className="flex gap-2 overflow-x-auto border-b border-slate-200/70 bg-white/85 px-3 py-2 shadow-sm backdrop-blur-xl lg:hidden">

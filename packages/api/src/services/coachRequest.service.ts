@@ -1,5 +1,5 @@
 import { UniqueConstraintError } from "sequelize";
-import { CoachRequest, User, UserProfile } from "../models";
+import { CoachRequest, Program, User, UserProfile } from "../models";
 import { createError } from "../middleware/error-handler";
 import type { CoachRequestStatus } from "@starter-kit/shared";
 
@@ -67,6 +67,28 @@ export const coachRequestService = {
       order: [["createdAt", "ASC"]],
     });
   },
+
+  /** Accepted clients, so the coach can pick who to build a program for. */
+  listAccepted: async (coachId: string) =>
+    CoachRequest.findAll({
+      where: { status: "accepted", coachId },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: [...PUBLIC_USER_FIELDS],
+          include: [
+            {
+              model: UserProfile,
+              as: "profile",
+              attributes: [...REVIEW_PROFILE_FIELDS],
+            },
+          ],
+        },
+        { model: Program, as: "program", attributes: ["id", "title", "status"] },
+      ],
+      order: [["respondedAt", "DESC"]],
+    }),
 
   async accept(coachRequestId: string, coachId: string) {
     return this.resolve(coachRequestId, coachId, "accepted");

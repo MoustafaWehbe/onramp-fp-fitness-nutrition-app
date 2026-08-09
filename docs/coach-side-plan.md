@@ -18,11 +18,17 @@ A coach has **no cap** on active clients.
 
 | # | Branch | State |
 |---|--------|-------|
-| 0 | `feature/coach-foundation` | current — the coach domain: schema, models, API |
-| 1 | `feature/coach-program-builder` | next, on top of branch 0 |
-| 2 | `feature/coach-requests` | coach Requests page (UI only; the API lands in branch 0) |
-| 3 | `feature/coach-profile-ratings` | ratings; profile fields moved into branch 0 |
+| 0 | `feature/coach-foundation` | merged (PR #23) — the coach domain: schema, models, API |
+| 1 | `feature/coach-program-builder` | current — builder, plus branch 2 and most of branch 3 |
+| 2 | `feature/coach-requests` | absorbed into branch 1 |
+| 3 | `feature/coach-profile-ratings` | profile editing shipped in branch 1; ratings still outstanding |
 | 4 | `chore/remove-admin` | deliberately last |
+
+Branches 2 and 3 were pulled forward into branch 1 rather than split out. The
+builder needs an accepted request to build against, and nothing in the UI could
+accept one — the flow was only reachable by calling the API by hand. Splitting
+that across three PRs would have meant two of them being individually
+undemonstrable.
 
 ### Why branch 0 exists
 
@@ -118,12 +124,32 @@ plan tables are needed.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `POST` | `/coach/programs` | Create a draft program for a client |
+| `POST` | `/coach/programs` | Create a draft program from an accepted request |
 | `GET` | `/coach/programs` | List programs this coach authored |
-| `GET` | `/coach/programs/:id` | Full program: 7 days, meals + items, workout + exercises |
-| `PUT` | `/coach/programs/:id` | Update program meta (title, goal, calories, macros) |
-| `PUT` | `/coach/programs/:id/days/:dayNumber` | Upsert one day — meals and workout together |
-| `POST` | `/coach/programs/:id/publish` | Flip draft to published |
+| `GET` | `/coach/programs/:programId` | Full program: 7 days, meals + items, workout + exercises |
+| `PATCH` | `/coach/programs/:programId` | Update program meta (title, goal, calories, macros) |
+| `PUT` | `/coach/programs/:programId/days/:dayNumber` | Upsert one day — meals and workout together |
+| `POST` | `/coach/programs/:programId/publish` | Flip draft to published |
+| `GET` | `/coach-requests/accepted` | Accepted clients, with their profile and program if built |
+
+`POST` takes a `coachRequestId`, not a client id: the client is derived from the
+accepted request, and `programs.coach_request_id` is unique, so "one program per
+accepted request" is held by the database rather than by a check. `PATCH` rather
+than the `PUT` originally planned, for the same reason as `/coach-profile` —
+every field is optional.
+
+A program is one dated week. Creating the draft also creates its seven
+`day_plans`, dated from a coach-chosen `startDate` that defaults to the coming
+Monday. Real dates are not optional: `MyPlan` highlights today by comparing
+dates, and the logging tables (`meal_logs`, `workout_logs`) hang off
+`day_plan_id`, so a dateless plan cannot be logged against.
+
+Day upsert replaces that day's meals and workout wholesale, and is refused once
+the program is published. `meal_logs` and `workout_logs` cascade from `meals` and
+`workouts`, so re-saving a published day would delete what the client had already
+logged. Publishing is therefore one-way, and it checks that every non-rest day
+has a workout with at least one exercise and that the program has at least one
+meal.
 
 Every endpoint checks `program.coachId === req.user.userId` before reading or writing.
 A coach must never reach another coach's program — this is the same class of bug already
@@ -144,32 +170,35 @@ makes a partially built program a valid state.
 - `pages/coach/CoachPrograms.tsx` — list of authored programs, entry point to the builder.
 - `hooks/useCoachProgram.ts` — fetch and per-day save.
 
-### Out of scope for branch 1
+### Role separation
 
-- Picking a client from a list of accepted requests — needs `CoachRequest`.
-- Showing the client's declared health problems — needs `UserProfile`.
+The sidebar was one hardcoded client nav shown to everyone, so a coach was invited to
+request a coach of their own. Nav is now role-based, and `ClientRoute` / `CoachRoute`
+guard the routes themselves — hiding a link does not stop anyone typing the URL. This
+also fixes where a coach lands after signing in: `Login` sends everyone to `/dashboard`,
+which now redirects a coach on to their own pages.
 
-Until branch 2 lands, a draft program is created against a known client id. When branch 2
-lands, **accepting a request creates the draft program** and links straight into the builder.
+Accepting a request deliberately does **not** create a program. The coach chooses the
+title, goal, calorie target and start date, so there is nothing sensible to create until
+they have.
 
-## Branch 2 — requests page
+## Branch 2 — requests page (shipped in branch 1)
 
-The API landed in branch 0, so this is the coach dashboard UI only.
-
-- Requests page listing requests addressed to the signed-in coach.
-- Accept and decline buttons against the existing endpoints.
-- Accepting creates the draft program and links to the builder.
-- Surface the client's health notes and profile on the request card.
+- Pending requests addressed to the signed-in coach, accept and decline on each.
+- The client's goal, age, measurements, activity level, and their declared injuries and
+  dietary notes on the card — the health information the request exists to convey.
+- Accepted clients listed below, linking to their program or into the builder with that
+  client preselected.
 
 ## Branch 3 — ratings
 
-Profile fields moved into branch 0 with `coach_profiles`. What is left:
+Profile fields shipped in branch 0, and the editing screen in branch 1 (in Settings,
+coach-only). What is left:
 
 - `coach_ratings` table — one rating per client per coach, written after the plan is
   delivered.
 - Replace the seeded static `rating` with the aggregate, on the listing and on the
   coach's own dashboard.
-- A coach profile editing screen for the fields the API already accepts.
 
 ## Branch 4 — remove admin
 

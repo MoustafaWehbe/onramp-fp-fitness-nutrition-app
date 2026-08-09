@@ -21,6 +21,11 @@ import { BrowsePrograms } from "../pages/programs/BrowsePrograms";
 import { ProgramDetail } from "../pages/programs/ProgramDetail";
 import { NotFound } from "../pages/NotFound";
 import { RequestCoach } from "../pages/onboarding/RequestCoach";
+import { CoachRoute } from "./CoachRoute";
+import { ClientRoute } from "./ClientRoute";
+import { CoachRequests } from "../pages/coach/CoachRequests";
+import { CoachPrograms } from "../pages/coach/CoachPrograms";
+import { ProgramBuilder } from "../pages/coach/ProgramBuilder";
 
 
 
@@ -38,17 +43,25 @@ export const AppRoutes = () => (
     <Route element={<ProtectedRoute />}>
 
       <Route element={<AppLayout />}>
-        <Route path={ROUTES.profile} element={<Onboarding />} />
-        <Route path={ROUTES.requestCoach} element={<RequestCoach />} />
-
-        <Route path={ROUTES.dashboard} element={<Dashboard />} />
-        <Route path={ROUTES.progress} element={<Progress />} />
-        <Route path={ROUTES.aiAssistant} element={<AIAssistant />} />
-        <Route path={ROUTES.myPlan} element={<MyPlan />} />
-        <Route path={ROUTES.dailyLog} element={<DailyLog />} />
         <Route path={ROUTES.settings} element={<Settings />} />
-        <Route path={ROUTES.programs} element={<BrowsePrograms />} />
-        <Route path={ROUTES.programDetail()} element={<ProgramDetail />} />
+
+        <Route element={<ClientRoute />}>
+          <Route path={ROUTES.profile} element={<Onboarding />} />
+          <Route path={ROUTES.requestCoach} element={<RequestCoach />} />
+          <Route path={ROUTES.dashboard} element={<Dashboard />} />
+          <Route path={ROUTES.progress} element={<Progress />} />
+          <Route path={ROUTES.aiAssistant} element={<AIAssistant />} />
+          <Route path={ROUTES.myPlan} element={<MyPlan />} />
+          <Route path={ROUTES.dailyLog} element={<DailyLog />} />
+          <Route path={ROUTES.programs} element={<BrowsePrograms />} />
+          <Route path={ROUTES.programDetail()} element={<ProgramDetail />} />
+        </Route>
+
+        <Route element={<CoachRoute />}>
+          <Route path={ROUTES.coachRequests} element={<CoachRequests />} />
+          <Route path={ROUTES.coachPrograms} element={<CoachPrograms />} />
+          <Route path={ROUTES.coachProgramBuilder()} element={<ProgramBuilder />} />
+        </Route>
       </Route>
     </Route>
     
