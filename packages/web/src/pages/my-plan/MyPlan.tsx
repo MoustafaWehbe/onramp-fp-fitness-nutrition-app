@@ -240,7 +240,28 @@ export function MyPlan() {
   const { workoutLog } = useDayLogs(activeDayPlanSummary?.id ?? null);
 
   if (programLoading) return <p className="p-6 text-muted-foreground">Loading program...</p>;
-  if (error || !program) return <p className="p-6 text-destructive">Failed to load program.</p>;
+
+  if (error) return <p className="p-6 text-destructive">Failed to load program.</p>;
+
+  if (!program) {
+    return (
+      <div className="mx-auto max-w-md space-y-4 p-10 text-center">
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-secondary">
+          <NotebookPen className="h-6 w-6 text-secondary-foreground" />
+        </div>
+        <h2 className="text-lg font-bold text-foreground">No plan yet</h2>
+        <p className="text-sm text-muted-foreground">
+          You don't have a plan assigned yet. Request a coach and they'll build a personalized workout and meal plan for you.
+        </p>
+        <a
+          href="/request-coach"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+        >
+          Request a Coach
+        </a>
+      </div>
+    );
+  }
 
   const progressPct = Math.round((program.completedDays / program.totalDays) * 100);
 

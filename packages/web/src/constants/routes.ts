@@ -3,7 +3,7 @@ export const ROUTES = {
   login: "/login",
   register: "/register",
   forgotPassword: "/forgot-password",
-  onboarding: "/onboarding",
+  // onboarding: "/onboarding",
   dashboard: "/dashboard",
   progress: "/progress",
   aiAssistant: "/ai-assistant",
@@ -11,6 +11,8 @@ export const ROUTES = {
   dailyLog: "/daily-log",
   settings: "/settings",
   programs: "/programs",
+  requestCoach: "/request-coach",
+  profile: "/onboarding",
   programDetail: (slug = ":slug") => `/programs/${slug}`,
 } as const;
 
