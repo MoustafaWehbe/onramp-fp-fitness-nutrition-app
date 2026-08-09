@@ -97,6 +97,24 @@ const findOwned = async (programId: string, coachId: string) => {
   return program;
 };
 
+/**
+ * `SELECT … FOR UPDATE` on the program row alone — no `include`, because
+ * Postgres refuses `FOR UPDATE` against the nullable side of an outer join.
+ */
+const lockOwned = async (
+  programId: string,
+  coachId: string,
+  transaction: Transaction,
+) => {
+  const program = await Program.findOne({
+    where: { id: programId, coachId },
+    transaction,
+    lock: transaction.LOCK.UPDATE,
+  });
+  if (!program) throw createError("Program not found.", 404);
+  return program;
+};
+
 const getDetail = async (programId: string, coachId: string) => {
   const program = await Program.findOne({
     where: { id: programId, coachId },
@@ -263,16 +281,22 @@ const upsertDay = async (
   dayNumber: number,
   input: UpsertProgramDayInput,
 ) => {
-  const program = await findOwned(programId, coachId);
-  if (program.status !== "draft") {
-    throw createError("A published program can no longer be edited.", 409);
-  }
-
-  const dayPlan = await DayPlan.findOne({ where: { programId, dayNumber } });
-  if (!dayPlan) throw createError("Day not found.", 404);
-
   const db = getDatabase();
   await db.transaction(async (transaction) => {
+    // Locked and rechecked inside the transaction: reading the status outside
+    // it lets a concurrent publish land in between, and the delete-recreate
+    // below would then rewrite a program the client can already see.
+    const program = await lockOwned(programId, coachId, transaction);
+    if (program.status !== "draft") {
+      throw createError("A published program can no longer be edited.", 409);
+    }
+
+    const dayPlan = await DayPlan.findOne({
+      where: { programId, dayNumber },
+      transaction,
+    });
+    if (!dayPlan) throw createError("Day not found.", 404);
+
     await dayPlan.update(
       {
         isRestDay: input.isRestDay,
@@ -298,31 +322,47 @@ const upsertDay = async (
  * half-built states that are fine in a draft are rejected here.
  */
 const publish = async (programId: string, coachId: string) => {
-  const program = await getDetail(programId, coachId);
-  if (program.status === "published") {
-    throw createError("This program is already published.", 409);
-  }
+  const db = getDatabase();
 
-  const days = (program.get("weekPlan") ?? []) as DayPlanWithChildren[];
+  await db.transaction(async (transaction) => {
+    // Same lock as the day upsert, so validating and publishing cannot be
+    // interleaved with an edit that would invalidate what was just checked.
+    const program = await lockOwned(programId, coachId, transaction);
+    if (program.status === "published") {
+      throw createError("This program is already published.", 409);
+    }
 
-  const emptyTrainingDay = days.find(
-    (day) => !day.isRestDay && !day.workout?.exercises?.length,
-  );
-  if (emptyTrainingDay) {
-    throw createError(
-      `Day ${emptyTrainingDay.dayNumber} needs a workout or must be marked as a rest day.`,
-      422,
+    const days = (await DayPlan.findAll({
+      where: { programId },
+      order: [["dayNumber", "ASC"]],
+      include: [
+        { model: Meal, as: "meals" },
+        {
+          model: Workout,
+          as: "workout",
+          include: [{ model: Exercise, as: "exercises" }],
+        },
+      ],
+      transaction,
+    })) as DayPlanWithChildren[];
+
+    const emptyTrainingDay = days.find(
+      (day) => !day.isRestDay && !day.workout?.exercises?.length,
     );
-  }
+    if (emptyTrainingDay) {
+      throw createError(
+        `Day ${emptyTrainingDay.dayNumber} needs a workout or must be marked as a rest day.`,
+        422,
+      );
+    }
 
-  if (!days.some((day) => day.meals?.length)) {
-    throw createError("Add at least one meal before publishing.", 422);
-  }
+    if (!days.some((day) => day.meals?.length)) {
+      throw createError("Add at least one meal before publishing.", 422);
+    }
 
-  await Program.update(
-    { status: "published" },
-    { where: { id: programId, coachId, status: "draft" } },
-  );
+    await program.update({ status: "published" }, { transaction });
+  });
+
   return getDetail(programId, coachId);
 };
 

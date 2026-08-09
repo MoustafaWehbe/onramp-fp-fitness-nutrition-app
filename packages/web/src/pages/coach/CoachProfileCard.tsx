@@ -75,6 +75,21 @@ export const CoachProfileCard = () => {
 
   if (isLoading) return null;
 
+  // Never offer the form on a failed load: the fields would be empty, and
+  // saving would write those blanks over a profile that does exist.
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Coach profile</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-red-600">{error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -84,8 +99,6 @@ export const CoachProfileCard = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-
         <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
           <label className="text-sm sm:col-span-2">
             <span className="font-medium text-slate-700">Headline</span>

@@ -43,13 +43,22 @@ export const CoachPrograms = () => {
 
   const clientsWithoutProgram = clients.filter((request) => !request.program);
 
+  // The id comes from the URL, so it can name a client who already has a
+  // program or was never accepted. Left as-is it would sit in state while the
+  // select renders blank, and `required` would not stop the submit.
+  const effectiveRequestId = clientsWithoutProgram.some(
+    (request) => request.id === selectedRequestId,
+  )
+    ? selectedRequestId
+    : "";
+
   const handleCreate = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSaving(true);
     setFormError(null);
     try {
       const program = await createProgram({
-        coachRequestId: selectedRequestId,
+        coachRequestId: effectiveRequestId,
         title,
         goal,
         level,
@@ -96,7 +105,7 @@ export const CoachPrograms = () => {
               <span className="font-medium text-slate-700">Client</span>
               <select
                 required
-                value={selectedRequestId}
+                value={effectiveRequestId}
                 onChange={(e) => setSelectedRequestId(e.target.value)}
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
               >

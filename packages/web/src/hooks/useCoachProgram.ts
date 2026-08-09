@@ -16,7 +16,11 @@ export const useCoachProgram = (programId: string | undefined) => {
   }, [programId]);
 
   useEffect(() => {
-    if (!programId) return;
+    if (!programId) {
+      setError("Program not found");
+      setIsLoading(false);
+      return;
+    }
 
     // Guards against a response landing after the component unmounts or the
     // programId changes mid-flight.

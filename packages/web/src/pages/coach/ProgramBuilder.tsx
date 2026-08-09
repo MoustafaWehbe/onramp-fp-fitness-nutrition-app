@@ -91,11 +91,18 @@ export const ProgramBuilder = () => {
   const saved = toDraft(currentDay);
   const isDirty = JSON.stringify(draft) !== JSON.stringify(saved);
 
+  // Keyed on the day's identity rather than the object reference: `saveDay` and
+  // `publish` replace the whole program, so a reference-keyed effect would run
+  // straight after them and wipe the confirmation they had just set.
   useEffect(() => {
     setDraft(toDraft(currentDay));
-    setMessage(null);
     setFormError(null);
-  }, [currentDay]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dayNumber, currentDay?.id]);
+
+  useEffect(() => {
+    setMessage(null);
+  }, [dayNumber]);
 
   // Every helper writes through the updater form: several fields can change in
   // one React batch, and reading `draft` from the closure would drop all but
