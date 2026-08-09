@@ -219,13 +219,16 @@ export const programService = {
   },
 
   async getActiveProgram(userId: string) {
-    const program = await Program.findOne({
-      where: { userId },
-      order: [["createdAt", "DESC"]],
-    });
-    if (!program) throw new Error("No active program found");
-    return program;
-  },
+  const program = await Program.findOne({
+    where: {
+      userId,
+      isCatalog: false,
+      status: "published",
+    },
+    order: [["createdAt", "DESC"]],
+  });
+  return program; 
+},
 
   async getProgramDetail(programId: string) {
     const program = await Program.findOne({

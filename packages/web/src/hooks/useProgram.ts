@@ -10,25 +10,30 @@ export function useActiveProgram() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function load() {
-      try {
-        const { data: programRes } = await apiClient.get<{ data: ApiProgram }>(
-          "/programs/active",
-        );
-        setProgram(programRes.data);
+  async function load() {
+    try {
+      const { data: programRes } = await apiClient.get<{ data: ApiProgram | null }>("/programs/active");
 
-        const { data: daysRes } = await apiClient.get<{ data: ApiDayPlanSummary[] }>(
-          `/programs/${programRes.data.id}/day-plans`,
-        );
-        setDayPlans(daysRes.data);
-      } catch (err) {
-        setError("Failed to load program");
-      } finally {
+      if (!programRes.data) {
+        setProgram(null);
+        setDayPlans([]);
         setIsLoading(false);
+        return;
       }
+
+      setProgram(programRes.data);
+      const { data: daysRes } = await apiClient.get<{ data: ApiDayPlanSummary[] }>(
+        `/programs/${programRes.data.id}/day-plans`,
+      );
+      setDayPlans(daysRes.data);
+    } catch (err) {
+      setError("Failed to load program");
+    } finally {
+      setIsLoading(false);
     }
-    load();
-  }, []);
+  }
+  load();
+}, []);
 
   return { program, dayPlans, isLoading, error };
 }
