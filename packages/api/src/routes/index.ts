@@ -7,6 +7,7 @@ import { fitnessRouter } from "./fitness.routes";
 import { coachRouter } from "./coach.routes";
 import { coachProfileRouter } from "./coachProfile.routes";
 import { coachRequestRouter } from "./coachRequest.routes";
+import { coachProgramRouter } from "./coachProgram.routes";
 import { userProfileRouter } from "./userProfile.routes";
 
 
@@ -20,6 +21,7 @@ router.use("/fitness", fitnessRouter);
 router.use("/coaches", coachRouter);
 router.use("/coach-profile", coachProfileRouter);
 router.use("/coach-requests", coachRequestRouter);
+router.use("/coach/programs", coachProgramRouter);
 router.use("/profile", userProfileRouter);
 
 export { router };

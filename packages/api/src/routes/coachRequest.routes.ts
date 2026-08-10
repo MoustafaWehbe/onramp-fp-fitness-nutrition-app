@@ -24,6 +24,12 @@ router.get(
   authorize("coach"),
   coachRequestController.listPending,
 );
+router.get(
+  "/accepted",
+  authenticate,
+  authorize("coach"),
+  coachRequestController.listAccepted,
+);
 router.patch(
   "/:coachRequestId/accept",
   authenticate,

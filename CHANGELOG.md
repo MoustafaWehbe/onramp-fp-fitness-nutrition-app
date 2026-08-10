@@ -30,6 +30,21 @@ How to update this file:
 - Coach profile management at `GET`/`PATCH /coach-profile`.
 - Coach request flow: a client sends a request with an optional message, and the
   coach it was addressed to can accept or decline it.
+- Coach Requests page: pending requests with the client's goal, measurements,
+  declared injuries and dietary notes, and accept or decline on each.
+- Program builder: a coach creates one dated week per accepted client and fills
+  in meals and a workout per day, then publishes it to the client's My Plan.
+  Meal totals are summed from their items rather than typed in.
+- Coach profile editing in Settings — headline, bio, gender, date of birth,
+  years of experience, photo, specialties and certifications.
+- Demo clients with pending requests (`client.nour@`, `client.karim@`), so the
+  coach Requests page has something to act on in development.
+
+### Changed
+
+- The sidebar is role-aware. A coach no longer sees My Plan, Daily Log, Request
+  Coach or the AI Assistant — none of which apply to them — and the client pages
+  now redirect a coach away rather than only hiding the links.
 
 ### Security
 
@@ -47,6 +62,8 @@ How to update this file:
   read-then-insert that two concurrent requests could both pass.
 - Rolling back the coach profile seeder deleted every coach profile, including
   real ones.
+- Registration crashed on submit: it navigated to a route constant that had been
+  removed, so the web build did not compile.
 
 ## [0.1.0] - 2026-08-05
 

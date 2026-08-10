@@ -498,3 +498,119 @@ export type ApiCoachRequest = {
   respondedAt: string | null;
   createdAt: string;
 };
+
+export type ApiCoachProfile = {
+  id: string;
+  userId: string;
+  title: string | null;
+  bio: string | null;
+  gender: Gender | null;
+  birthDate: string | null;
+  specialties: string[] | null;
+  yearsExperience: number | null;
+  certifications: string[] | null;
+  avatarUrl: string | null;
+  rating: number | null;
+  clientsCount: number;
+};
+
+export type ApiCoachProfileInput = {
+  title?: string | null;
+  bio?: string | null;
+  gender?: Gender | null;
+  birthDate?: string | null;
+  specialties?: string[] | null;
+  yearsExperience?: number | null;
+  certifications?: string[] | null;
+  avatarUrl?: string | null;
+};
+
+export type ApiCoachClientProfile = {
+  age: number | null;
+  gender: Gender | null;
+  heightCm: number | null;
+  weightKg: number | null;
+  targetWeightKg: number | null;
+  activityLevel: string | null;
+  goal: string | null;
+  injuries: string | null;
+  dietaryNotes: string | null;
+};
+
+/** A request as a coach sees it: with the client attached, and their program if built. */
+export type ApiCoachRequestWithClient = ApiCoachRequest & {
+  user?: {
+    id: string;
+    name: string;
+    profile?: ApiCoachClientProfile | null;
+  } | null;
+  program?: {
+    id: string;
+    title: string;
+    status: ApiProgramStatus;
+  } | null;
+};
+
+export type ApiProgramStatus = "draft" | "published";
+
+export type ApiBuilderMealItem = {
+  name: string;
+  quantity: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+};
+
+export type ApiBuilderMeal = {
+  type: "breakfast" | "snack" | "lunch" | "dinner";
+  time: string;
+  items: ApiBuilderMealItem[];
+};
+
+export type ApiBuilderExercise = {
+  name: string;
+  sets: number;
+  reps: string;
+  rest: string;
+  muscle: string;
+  notes?: string | null;
+};
+
+export type ApiBuilderWorkout = {
+  name: string;
+  type: string;
+  duration: string;
+  exercises: ApiBuilderExercise[];
+};
+
+export type ApiBuilderDayInput = {
+  label?: string;
+  isRestDay: boolean;
+  meals: ApiBuilderMeal[];
+  workout?: ApiBuilderWorkout | null;
+};
+
+export type ApiCoachProgramDay = {
+  id: string;
+  dayNumber: number;
+  label: string;
+  date: string;
+  isRestDay: boolean;
+  meals?: Array<ApiBuilderMeal & { id: string }>;
+  workout?: (ApiBuilderWorkout & { id: string }) | null;
+};
+
+export type ApiCoachProgram = {
+  id: string;
+  userId: string | null;
+  coachRequestId: string | null;
+  status: ApiProgramStatus;
+  title: string;
+  goal: string;
+  level: string;
+  calories: number;
+  startDate: string | null;
+  user?: { id: string; name: string } | null;
+  weekPlan?: ApiCoachProgramDay[];
+};

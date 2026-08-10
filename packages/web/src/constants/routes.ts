@@ -3,7 +3,6 @@ export const ROUTES = {
   login: "/login",
   register: "/register",
   forgotPassword: "/forgot-password",
-  // onboarding: "/onboarding",
   dashboard: "/dashboard",
   progress: "/progress",
   aiAssistant: "/ai-assistant",
@@ -14,6 +13,10 @@ export const ROUTES = {
   requestCoach: "/request-coach",
   profile: "/onboarding",
   programDetail: (slug = ":slug") => `/programs/${slug}`,
+  coachRequests: "/coach/requests",
+  coachPrograms: "/coach/programs",
+  coachProgramBuilder: (programId = ":programId") =>
+    `/coach/programs/${programId}`,
 } as const;
 
 export const LANDING_SECTIONS = {

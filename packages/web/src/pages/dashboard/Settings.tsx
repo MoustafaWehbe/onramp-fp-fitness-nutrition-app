@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { CoachProfileCard } from "../coach/CoachProfileCard";
 
 export function Settings() {
   const { user } = useAuth();
@@ -37,6 +38,8 @@ export function Settings() {
           </div>
         </CardContent>
       </Card>
+
+      {user?.role === "coach" && <CoachProfileCard />}
     </div>
   );
 }

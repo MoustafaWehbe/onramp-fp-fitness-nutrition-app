@@ -14,8 +14,8 @@ const httpUrl = z
     return protocol === "http:" || protocol === "https:";
   }, "Must be an http(s) URL");
 
-/** A real calendar day, in the past. `2026-13-45` matches the shape but is not one. */
-const pastCalendarDate = z
+/** A real calendar day. `2026-13-45` matches the shape but is not one. */
+export const calendarDate = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD")
   .refine((value) => {
@@ -24,11 +24,12 @@ const pastCalendarDate = z
       !Number.isNaN(parsed.getTime()) &&
       parsed.toISOString().slice(0, 10) === value
     );
-  }, "Not a valid calendar date")
-  .refine(
-    (value) => new Date(`${value}T00:00:00Z`) < new Date(),
-    "Must be in the past",
-  );
+  }, "Not a valid calendar date");
+
+const pastCalendarDate = calendarDate.refine(
+  (value) => new Date(`${value}T00:00:00Z`) < new Date(),
+  "Must be in the past",
+);
 
 /**
  * Editable coach profile fields, allowlisted.
