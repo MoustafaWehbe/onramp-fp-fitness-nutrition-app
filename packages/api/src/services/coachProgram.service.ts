@@ -361,6 +361,15 @@ const publish = async (programId: string, coachId: string) => {
     }
 
     await program.update({ status: "published" }, { transaction });
+    if (program.coachRequestId) {
+      await CoachRequest.update(
+        { status: "completed", respondedAt: new Date() },
+        {
+          where: { id: program.coachRequestId, coachId, status: "accepted" },
+          transaction,
+        },
+      );
+    }
   });
 
   return getDetail(programId, coachId);
