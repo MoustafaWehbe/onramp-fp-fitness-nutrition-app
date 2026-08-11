@@ -46,12 +46,21 @@ export function RequestCoach() {
             </p>
           </>
         )}
-        {(request.status === "accepted" || request.status === "completed") && (
+        {(request.status === "accepted") && (
           <>
             <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
             <h1 className="text-xl font-bold text-foreground">A coach is on it</h1>
             <p className="text-sm text-muted-foreground">
               {request.coach?.name ?? "Your coach"} is preparing your plan. Check My Plan soon.
+            </p>
+          </>
+        )}
+        {request.status === "completed" && (
+          <>
+            <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
+            <h1 className="text-xl font-bold text-foreground">Plan Completed</h1>
+            <p className="text-sm text-muted-foreground">
+              Your plan is ready. Check My Plan to view it.
             </p>
           </>
         )}
