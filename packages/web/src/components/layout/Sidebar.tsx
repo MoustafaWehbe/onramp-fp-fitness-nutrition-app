@@ -6,7 +6,6 @@ import {
   CalendarDays,
   ChartNoAxesCombined,
   ClipboardList,
-  Dumbbell,
   Inbox,
   LayoutDashboard,
   Settings,
@@ -45,12 +44,14 @@ const navItemsFor = (role: string | undefined) =>
 function BrandMark() {
   return (
     <div className="flex items-center gap-3">
-      <span className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-950 text-cyan-200 shadow-lg shadow-cyan-500/10">
-        <Dumbbell className="h-5 w-5" />
-      </span>
+      <img
+        src="/images/logo.png"
+        alt=""
+        className="h-10 w-10 object-contain"
+      />
       <div className="leading-tight">
         <p className="font-heading text-sm font-bold uppercase tracking-[0.22em] text-slate-950">
-          FitCoach AI
+          FitCoach
         </p>
         <p className="text-xs font-medium text-slate-500">Live coaching OS</p>
       </div>

@@ -180,7 +180,7 @@ export function Dashboard() {
                   Welcome back, {user?.name ?? "Coach"}
                 </p>
                 <h1 className="mt-3 max-w-3xl break-words text-3xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-                  FitCoach AI command center
+                  FitCoach command center
                 </h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-slate-200">
                   Your active program, today&apos;s plan, progress signals, and

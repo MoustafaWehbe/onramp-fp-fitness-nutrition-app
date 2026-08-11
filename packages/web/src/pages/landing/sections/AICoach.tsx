@@ -1,75 +1,72 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Database, MessageSquareText, Sparkles } from "lucide-react";
+import { ArrowRight, MessageSquareText, Sparkles } from "lucide-react";
 import { LANDING_SECTIONS, ROUTES } from "../../../constants/routes";
-import { COACH_QUESTIONS } from "../landing.data";
+import { COACH_CONTEXT_ITEMS, COACH_QUESTIONS } from "../landing.data";
 
 export const AICoach = () => (
   <section
     id={LANDING_SECTIONS.coach.replace("#", "")}
-    className="bg-ink py-24 text-white"
+    className="bg-background py-24 sm:py-28"
   >
     <div className="mx-auto grid w-full max-w-7xl gap-14 px-6 lg:grid-cols-2 lg:items-center">
       <div>
-        <p className="eyebrow text-primary">The difference</p>
-        <h2 className="mt-3 font-display text-4xl uppercase tracking-tight sm:text-5xl">
-          An AI coach with your
-          <span className="text-primary"> full context</span>
+        <p className="eyebrow text-muted-foreground">The difference</p>
+        <h2 className="mt-3 font-sans text-3xl font-black uppercase leading-[0.95] tracking-tight text-ink sm:text-4xl lg:text-5xl">
+          A coach that read
+          <span className="block text-brand-green-dark">your whole week</span>
         </h2>
-        <p className="mt-6 max-w-md text-white/70">
-          Because it sees both your plan and everything you have logged, the
-          assistant answers from PostgreSQL-backed program, meal, workout,
-          measurement, and chat history.
+        <p className="mt-5 max-w-md text-base text-muted-foreground sm:text-lg">
+          Generic advice is easy to find. Advice that accounts for the three
+          workouts you skipped is not.
         </p>
 
         <ul className="mt-8 space-y-3">
           {COACH_QUESTIONS.map((q) => (
             <li
               key={q}
-              className="flex items-center gap-3 border border-white/10 bg-ink-800 px-4 py-3 text-sm"
+              className="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-4 text-sm text-ink"
             >
-              <MessageSquareText className="h-4 w-4 shrink-0 text-primary" />
-              <span>"{q}"</span>
+              <MessageSquareText
+                className="h-4 w-4 shrink-0 text-brand-green-dark"
+                aria-hidden
+              />
+              <span>&ldquo;{q}&rdquo;</span>
             </li>
           ))}
         </ul>
       </div>
 
-      <div className="clip-slant-tl border border-white/10 bg-ink-800 p-6">
-        <div className="flex items-center gap-3 border border-white/10 bg-ink p-4">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-primary text-ink">
-            <Database className="h-5 w-5" />
-          </span>
-          <div>
-            <p className="font-heading text-sm font-semibold uppercase tracking-wide">
-              Live context only
-            </p>
-            <p className="mt-1 text-sm text-white/60">
-              The assistant panel appears after sign in and only renders real
-              OpenRouter/API responses or clear provider errors.
-            </p>
-          </div>
-        </div>
+      <div className="rounded-xl bg-ink p-8 text-white">
+        <p className="eyebrow text-brand-green">What it reads</p>
+        <h3 className="mt-3 font-heading text-2xl font-bold uppercase tracking-wide">
+          Your plan and your logs
+        </h3>
+        <p className="mt-3 text-sm leading-relaxed text-white/60">
+          Nothing invented, and nothing borrowed from somebody else&apos;s
+          week.
+        </p>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          {["Active program", "Meal logs", "Workout logs", "Measurements"].map(
-            (item) => (
-              <div
-                key={item}
-                className="flex items-center gap-2 border border-white/10 px-3 py-3 text-sm text-white/70"
-              >
-                <Sparkles className="h-4 w-4 text-primary" />
-                {item}
-              </div>
-            ),
-          )}
-        </div>
+        <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+          {COACH_CONTEXT_ITEMS.map((item) => (
+            <li
+              key={item}
+              className="flex items-center gap-2 rounded-lg border border-white/10 px-4 py-3 text-sm text-white/70"
+            >
+              <Sparkles
+                className="h-4 w-4 shrink-0 text-brand-green"
+                aria-hidden
+              />
+              {item}
+            </li>
+          ))}
+        </ul>
 
         <Link
-          to={ROUTES.login}
-          className="mt-6 inline-flex items-center gap-2 bg-primary px-5 py-3 font-heading text-sm font-semibold uppercase tracking-wide text-ink transition-colors hover:bg-brand-green-dark"
+          to={ROUTES.register}
+          className="group mt-8 inline-flex items-center gap-2 rounded-xl bg-brand-green px-6 py-3 font-heading text-sm font-semibold uppercase tracking-wide text-[#0c2410] transition-colors hover:bg-white"
         >
-          Open AI assistant
-          <ArrowRight className="h-4 w-4" />
+          Try it yourself
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </Link>
       </div>
     </div>

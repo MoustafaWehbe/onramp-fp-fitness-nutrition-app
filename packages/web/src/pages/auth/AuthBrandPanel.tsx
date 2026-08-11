@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Check, Dumbbell } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
-import { AUTH_HIGHLIGHTS } from "../../constants/auth";
-import { HERO_STATS } from "../landing/landing.data";
+import { AUTH_HIGHLIGHTS, AUTH_STATS } from "../../constants/auth";
 
 export const AuthBrandPanel = () => (
   <aside className="relative hidden overflow-hidden bg-ink text-white lg:flex lg:flex-col">
@@ -14,9 +13,11 @@ export const AuthBrandPanel = () => (
     <div className="relative flex h-full flex-col justify-between p-12 xl:p-16">
       <div className="flex items-center justify-between gap-4">
         <Link to={ROUTES.landing} className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center bg-primary text-ink">
-            <Dumbbell className="h-5 w-5" />
-          </span>
+          <img
+            src="/images/logo.png"
+            alt=""
+            className="h-8 w-8 object-contain"
+          />
           <span className="font-heading text-lg font-bold uppercase tracking-wider">
             FitCoach
           </span>
@@ -30,9 +31,9 @@ export const AuthBrandPanel = () => (
       </div>
 
       <div className="max-w-md">
-        <p className="eyebrow text-primary">Your AI fitness coach</p>
+        <p className="eyebrow text-primary">Built around your week</p>
         <h2 className="mt-4 font-display text-5xl uppercase leading-[0.95] tracking-tight xl:text-6xl">
-          Train with a coach that knows you
+          A plan you&apos;ll actually follow
         </h2>
         <ul className="mt-8 space-y-4">
           {AUTH_HIGHLIGHTS.map((item) => (
@@ -47,7 +48,7 @@ export const AuthBrandPanel = () => (
       </div>
 
       <div className="flex gap-8 border-t border-white/10 pt-8">
-        {HERO_STATS.map((s) => (
+        {AUTH_STATS.map((s) => (
           <div key={s.label}>
             <div className="font-display text-3xl text-primary">{s.value}</div>
             <div className="text-xs uppercase tracking-wide text-white/50">
