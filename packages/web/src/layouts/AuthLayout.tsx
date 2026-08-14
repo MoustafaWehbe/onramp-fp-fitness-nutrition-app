@@ -1,5 +1,4 @@
 import { Link, Outlet } from "react-router-dom";
-import { Dumbbell } from "lucide-react";
 import { ROUTES } from "../constants/routes";
 import { AuthBrandPanel } from "../pages/auth/AuthBrandPanel";
 
@@ -9,9 +8,11 @@ export const AuthLayout = () => (
 
     <main className="flex flex-col justify-center bg-background px-6 py-12 sm:px-12">
       <Link to={ROUTES.landing} className="mb-12 flex items-center gap-2 lg:hidden">
-        <span className="flex h-8 w-8 items-center justify-center bg-primary text-ink">
-          <Dumbbell className="h-5 w-5" />
-        </span>
+        <img
+          src="/images/logo.png"
+          alt=""
+          className="h-8 w-8 object-contain"
+        />
         <span className="font-heading text-lg font-bold uppercase tracking-wider">
           FitCoach
         </span>
