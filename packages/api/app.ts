@@ -13,6 +13,10 @@ import { router } from "./src/routes";
 
 const app = express();
 
+// ─── Proxy ────────────────────────────────────────────────────────────────────
+// Caddy, then nginx. See docs/deploy.md.
+app.set("trust proxy", 2);
+
 // ─── Security ─────────────────────────────────────────────────────────────────
 app.use(helmet());
 app.use(

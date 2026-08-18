@@ -1,0 +1,21 @@
+{
+	# Let's Encrypt expiry notices.
+	email youssef.m@codendot.com
+
+	# The DO firewall allows TCP only. Without this, caddy binds UDP 443 inside
+	# the container and advertises an HTTP/3 endpoint clients cannot reach.
+	servers {
+		protocols h1 h2
+	}
+}
+
+fitcoach.ten-ten.live {
+	# Swagger UI is mounted unauthenticated. Blocked here rather than in
+	# nginx.conf so it stays editable without rebuilding the web image.
+	@docs path /api/docs /api/docs/* /api/openapi.yaml
+	respond @docs 404
+
+	# Certificates, renewal and the HTTP->HTTPS redirect are automatic.
+	# nginx inside the web image still owns the SPA fallback and the /api proxy.
+	reverse_proxy web:8080
+}

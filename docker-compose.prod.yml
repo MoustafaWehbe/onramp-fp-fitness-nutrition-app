@@ -1,0 +1,119 @@
+# Production stack. Images are pulled from Docker Hub, never built here -- the
+# droplet has 1 GB of RAM and the builds need 2-3 GB. See docs/deploy.md.
+
+x-datastore-env: &datastore-env
+  DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-starter_kit}
+  REDIS_URL: redis://redis:6379
+
+x-datastore-deps: &datastore-deps
+  postgres:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+
+# 25 GB disk, so container logs get a ceiling rather than growing until the
+# volume fills and postgres starts failing writes.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '3'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-starter_kit}
+    # Loopback only. Plain '5432:5432' binds 0.0.0.0, and docker's iptables
+    # rules bypass ufw, so that would be publicly reachable. This form is only
+    # reachable through the SSH tunnel used to run migrations.
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    logging: *logging
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: youssefalmostafa/fitcoach-api:latest
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      <<: *datastore-env
+      NODE_ENV: production
+      PORT: 3000
+      CORS_ORIGIN: ${CORS_ORIGIN:?set CORS_ORIGIN in .env}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?set JWT_REFRESH_SECRET in .env}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-4o-mini}
+    depends_on: *datastore-deps
+
+  workers:
+    image: youssefalmostafa/fitcoach-workers:latest
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      <<: *datastore-env
+      NODE_ENV: production
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-4o-mini}
+    depends_on: *datastore-deps
+
+  # No published ports: caddy reaches this over the compose network. The
+  # VITE_GOOGLE_CLIENT_ID build arg is already baked into the image.
+  web:
+    image: youssefalmostafa/fitcoach-web:latest
+    restart: unless-stopped
+    logging: *logging
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # The only service exposed to the internet. Terminates TLS and forwards
+  # everything to web's nginx, which keeps doing the SPA fallback and /api proxy.
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    logging: *logging
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  # Holds the issued certificates and the ACME account key. Losing this means
+  # re-issuing from Let's Encrypt on every restart, which hits rate limits.
+  caddy_data:
+  caddy_config:
