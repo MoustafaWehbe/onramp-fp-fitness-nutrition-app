@@ -41,15 +41,38 @@ Two independent reasons, both fatal on plain HTTP:
 
 ## Prerequisites
 
-- Droplet: Ubuntu 24.04, Basic/Regular 1 GB / 1 vCPU / 25 GB (`s-1vcpu-1gb`, $6/mo)
+- Droplet `ubuntu-s-1vcpu-1gb-fra1` at `159.89.16.150` — Ubuntu 24.04, Basic/Regular
+  1 GB / 1 vCPU / 25 GB (`s-1vcpu-1gb`, $6/mo), Frankfurt
 - DO Cloud Firewall attached, inbound TCP 22, 80, 443 only
 - DNS: `fitcoach.ten-ten.live` A record → droplet IP, resolving before first boot (Caddy needs
-  it to answer the ACME HTTP-01 challenge)
+  it to answer the ACME HTTP-01 challenge). DNS is hosted at name.com; there is no wildcard
+  record on `ten-ten.live` and no Cloudflare proxy in front, so HTTP-01 reaches the droplet
+  directly.
 - `https://fitcoach.ten-ten.live` registered as an Authorized JavaScript origin on the Google
   OAuth client whose ID was baked into the web image
 - Images pushed: `youssefalmostafa/fitcoach-{api,workers,web}:latest`
 
 ## Droplet preparation
+
+### First connection
+
+SSH asks you to accept the host key on first connect. Verify it out of band rather than
+accepting blind — open the droplet's browser console from the DigitalOcean control panel
+(**Access → Launch Droplet Console**), which reaches the droplet through the hypervisor rather
+than SSH, and run:
+
+```bash
+ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
+```
+
+Compare that fingerprint with the one `ssh root@159.89.16.150` is showing, then answer `yes`.
+
+Two things that look like failures but are not:
+
+- `Connection closed by <ip> port 22` on the first attempt usually means cloud-init was still
+  writing `/root/.ssh/authorized_keys` when sshd accepted the connection. Retry.
+- `REMOTE HOST IDENTIFICATION HAS CHANGED` after a droplet rebuild is expected — clear it with
+  `ssh-keygen -R 159.89.16.150`. If it appears when you have *not* rebuilt, stop and investigate.
 
 ### Swap
 
@@ -64,6 +87,16 @@ swapon /swapfile
 echo '/swapfile none swap sw 0 0' >> /etc/fstab
 echo 'vm.swappiness=10' > /etc/sysctl.d/99-swap.conf
 sysctl -p /etc/sysctl.d/99-swap.conf
+```
+
+### System updates
+
+A fresh droplet image is typically a month or two behind on security patches. `DEBIAN_FRONTEND`
+stops Ubuntu 24.04's `needrestart` from opening a blocking "restart these services?" dialog.
+
+```bash
+export DEBIAN_FRONTEND=noninteractive
+apt-get update && apt-get -y upgrade
 ```
 
 ### Docker
