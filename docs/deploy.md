@@ -131,14 +131,21 @@ cd /opt/fitcoach
 `.env` is not committed. Create it at the repo root on the droplet:
 
 ```bash
-cat > /opt/fitcoach/.env <<EOF
-POSTGRES_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=')
-JWT_SECRET=$(openssl rand -hex 48)
-JWT_REFRESH_SECRET=$(openssl rand -hex 48)
-CORS_ORIGIN=https://fitcoach.ten-ten.live
-EOF
+rm -f /opt/fitcoach/.env
+echo "POSTGRES_PASSWORD=$(openssl rand -base64 32 | tr -d '/+=')" > /opt/fitcoach/.env
+echo "JWT_SECRET=$(openssl rand -hex 48)" >> /opt/fitcoach/.env
+echo "JWT_REFRESH_SECRET=$(openssl rand -hex 48)" >> /opt/fitcoach/.env
+echo "CORS_ORIGIN=https://fitcoach.ten-ten.live" >> /opt/fitcoach/.env
 chmod 600 /opt/fitcoach/.env
 ```
+
+One `echo` per line rather than a heredoc on purpose. Terminals with bracketed paste can indent
+pasted lines, and an indented `EOF` no longer terminates a heredoc — the shell then swallows
+`chmod` and everything after it as more heredoc body. Independent lines paste safely at any
+indentation. Note the first line uses `>` and the rest `>>`.
+
+Read the password back with `grep POSTGRES /opt/fitcoach/.env` rather than `cat`, so the JWT
+secrets stay off the screen.
 
 `POSTGRES_PASSWORD`, `JWT_SECRET`, `JWT_REFRESH_SECRET` and `CORS_ORIGIN` use the `${VAR:?}`
 form in compose, so a missing value fails fast with a named error instead of booting an API that
@@ -196,6 +203,13 @@ $env:DATABASE_URL = "postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433/st
 npm run db:migrate --workspace=@starter-kit/api
 ```
 
+`<POSTGRES_PASSWORD>` is a placeholder — substitute the value, angle brackets included. Left in
+place they become part of the password and the only symptom is
+`password authentication failed for user "postgres"`, which reads like a mismatched secret.
+
+`Using environment "development"` in the output is expected and harmless: `database.js` reads
+`DATABASE_URL` directly, so the environment label selects nothing.
+
 Two things make this work:
 
 - `packages/api/src/config/database.js` calls `dotenv.config()` on the root `.env`, but dotenv
@@ -216,14 +230,50 @@ The tradeoff is that migrations run from a developer machine rather than a repro
 artifact. Acceptable at this scale. If this grows a CI-driven deploy, build a migration image
 from the API Dockerfile's `build` stage instead.
 
-### Seeders are not run in production
+### Seeding: five of eleven seeders, never `db:seed:all`
 
-`npm run db:seed` is deliberately skipped. `packages/api/src/seeders/20240101000000-admin-user.js`
-hardcodes the password `Admin1234!` for `admin@example.com`, and several coach seeders do the
-same — in a public repository. Seeding production would hand anyone an admin account.
+`npm run db:seed` runs `db:seed:all` and must not be used against production.
+`20240101000000-admin-user.js` hardcodes `Admin1234!` for `admin@example.com` in a public
+repository, and the admin surface is being removed from the product anyway.
 
-Register accounts through the UI instead. If demo data is genuinely needed for a presentation,
-first move those passwords to environment variables.
+Skipping the admin row rules out three more seeders, because they were written when it was the
+only user in the database:
+
+| Seeder | Why it cannot run |
+|--------|-------------------|
+| `20240703000000-shared-fitness-demo-data` | hardcodes the admin UUID as `user_id`; fails the foreign key |
+| `20240705000002-archive-legacy-ai-chat-history` | same UUID, but an `UPDATE`, so it is a silent no-op |
+| `20240701000000-seed-program` | `SELECT id FROM users LIMIT 1` throws `No user found` on an empty database |
+| `20240705000000-complete-weekly-demo-meals` | builds on the program the seeder above would have created |
+
+Their timestamps place them before the coach seeders, so no ordering fixes this — the coaches do
+not exist yet when they run.
+
+The five that are safe on a fresh production database, in this order:
+
+```powershell
+$env:SEED_COACH_PASSWORD = "<pick one>"
+$env:SEED_CLIENT_PASSWORD = "<pick one>"
+
+npm run db:seed:one --workspace=@starter-kit/api -- 20260806120100-seed-coaches.js
+npm run db:seed:one --workspace=@starter-kit/api -- 20260806120200-seed-coach-profiles.js
+npm run db:seed:one --workspace=@starter-kit/api -- 20260809120000-seed-coach-requests.js
+npm run db:seed:one --workspace=@starter-kit/api -- 20240712000000-seed-program-catalog.js
+npm run db:seed:one --workspace=@starter-kit/api -- 20260706061044-dynamic-program-dates.js
+```
+
+Same `DATABASE_URL` and tunnel as the migrations above. `SEED_COACH_PASSWORD` and
+`SEED_CLIENT_PASSWORD` become the login password for every seeded coach and client respectively;
+the seeders refuse to run without them unless `NODE_ENV=development`.
+
+`db:seed:one` exists because `db:seed` is hardwired to `db:seed:all`. The `--seed` flag lives
+inside the script rather than being passed on the command line: npm parses a leading `--seed`
+as its own config even after `--`, and forwards only the bare filename, which sequelize-cli then
+rejects as an unknown argument. Passing the filename as a positional argument avoids that.
+
+`20260706061044-dynamic-program-dates` also does `SELECT id FROM users LIMIT 1` with no
+`ORDER BY`, so its personal program attaches to an arbitrary user — in practice a seeded coach.
+Skip it if that is confusing in a demo and build the program through the coach UI instead.
 
 ## Redeploy
 

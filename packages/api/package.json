@@ -12,7 +12,8 @@
     "clean": "rm -rf dist",
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:undo": "sequelize-cli db:migrate:undo",
-    "db:seed": "sequelize-cli db:seed:all"
+    "db:seed": "sequelize-cli db:seed:all",
+    "db:seed:one": "sequelize-cli db:seed --seed"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.4",
