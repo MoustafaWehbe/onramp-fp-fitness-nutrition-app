@@ -31,9 +31,9 @@ export const FeaturedPrograms = () => {
   return (
     <section
       id={LANDING_SECTIONS.programs.replace("#", "")}
-      className="bg-ink py-24 text-white sm:py-28"
+      className="bg-ink py-16 text-white sm:py-24 lg:py-28"
     >
-      <div className="mx-auto w-full max-w-7xl px-6">
+      <div className="mx-auto w-full max-w-7xl px-5 sm:px-6">
         <div className="max-w-2xl">
           <p className="eyebrow text-brand-green">The catalog</p>
           <h2 className="mt-3 font-sans text-3xl font-black uppercase leading-[0.95] tracking-tight sm:text-4xl lg:text-5xl">
@@ -47,7 +47,7 @@ export const FeaturedPrograms = () => {
         </div>
 
         {loading ? (
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid gap-6 sm:mt-14 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 3 }).map((_, index) => (
               <div
                 key={index}
@@ -56,7 +56,7 @@ export const FeaturedPrograms = () => {
             ))}
           </div>
         ) : error ? (
-          <div className="mt-14 flex flex-col items-center gap-4 rounded-xl border border-dashed border-white/15 px-6 py-16 text-center">
+          <div className="mt-10 flex flex-col items-center gap-4 rounded-xl border border-dashed border-white/15 px-5 py-12 text-center sm:mt-14 sm:px-6 sm:py-16">
             <AlertCircle className="h-9 w-9 text-brand-green" aria-hidden />
             <p className="font-heading text-xl font-bold uppercase tracking-wide">
               Programs could not be loaded
@@ -74,13 +74,13 @@ export const FeaturedPrograms = () => {
             </button>
           </div>
         ) : programs.length > 0 ? (
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid gap-6 sm:mt-14 sm:grid-cols-2 lg:grid-cols-3">
             {programs.slice(0, 3).map((program) => (
               <LandingProgramCard key={program.id} program={program} />
             ))}
           </div>
         ) : (
-          <div className="mt-14 flex flex-col items-center gap-4 rounded-xl border border-dashed border-white/15 px-6 py-16 text-center">
+          <div className="mt-10 flex flex-col items-center gap-4 rounded-xl border border-dashed border-white/15 px-5 py-12 text-center sm:mt-14 sm:px-6 sm:py-16">
             <SearchX className="h-9 w-9 text-white/40" aria-hidden />
             <p className="font-heading text-xl font-bold uppercase tracking-wide">
               No programs yet

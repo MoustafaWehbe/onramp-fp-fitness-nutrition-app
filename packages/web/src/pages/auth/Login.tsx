@@ -52,7 +52,7 @@ export const Login = () => {
   return (
     <div>
       <p className="eyebrow text-primary">Welcome back</p>
-      <h1 className="mt-3 font-display text-5xl uppercase leading-none tracking-tight">
+      <h1 className="mt-3 font-display text-4xl uppercase leading-none tracking-tight sm:text-5xl">
         Sign in
       </h1>
       <p className="mt-3 text-sm text-muted-foreground">

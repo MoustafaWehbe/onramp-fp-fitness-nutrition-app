@@ -77,13 +77,13 @@ export const CoachRequests = () => {
     }
   };
 
-  if (isLoading) return <p className="p-6 text-slate-500">Loading…</p>;
-  if (error) return <p className="p-6 text-red-600">{error}</p>;
+  if (isLoading) return <p className="text-slate-500">Loading…</p>;
+  if (error) return <p className="text-red-600">{error}</p>;
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-8">
       <header>
-        <h1 className="font-heading text-2xl font-bold text-slate-950">Requests</h1>
+        <h1 className="font-heading text-xl font-bold text-slate-950 sm:text-2xl">Requests</h1>
         <p className="mt-1 text-sm text-slate-500">
           Clients asking you to coach them. Accepting one lets you build their
           program.
@@ -108,7 +108,7 @@ export const CoachRequests = () => {
                 className="rounded-2xl border border-slate-200 bg-white/80 p-4"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
+                  <div className="min-w-0">
                     <p className="flex items-center gap-1.5 font-semibold text-slate-950">
                       <UserRound className="h-4 w-4" />
                       {request.user?.name ?? "Client"}
@@ -120,12 +120,12 @@ export const CoachRequests = () => {
                     )}
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex w-full gap-2 sm:w-auto">
                     <button
                       type="button"
                       disabled={busyId === request.id}
                       onClick={() => handleRespond(request.id, "accept")}
-                      className="inline-flex items-center gap-1 rounded-xl bg-slate-950 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                      className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl bg-slate-950 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50 sm:flex-none"
                     >
                       <Check className="h-3.5 w-3.5" />
                       Accept
@@ -134,7 +134,7 @@ export const CoachRequests = () => {
                       type="button"
                       disabled={busyId === request.id}
                       onClick={() => handleRespond(request.id, "decline")}
-                      className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 disabled:opacity-50"
+                      className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 disabled:opacity-50 sm:flex-none"
                     >
                       <X className="h-3.5 w-3.5" />
                       Decline

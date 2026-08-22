@@ -6,9 +6,9 @@ import { COACH_CONTEXT_ITEMS, COACH_QUESTIONS } from "../landing.data";
 export const AICoach = () => (
   <section
     id={LANDING_SECTIONS.coach.replace("#", "")}
-    className="bg-background py-24 sm:py-28"
+    className="bg-background py-16 sm:py-24 lg:py-28"
   >
-    <div className="mx-auto grid w-full max-w-7xl gap-14 px-6 lg:grid-cols-2 lg:items-center">
+    <div className="mx-auto grid w-full max-w-7xl gap-12 px-5 sm:gap-14 sm:px-6 lg:grid-cols-2 lg:items-center">
       <div>
         <p className="eyebrow text-muted-foreground">The difference</p>
         <h2 className="mt-3 font-sans text-3xl font-black uppercase leading-[0.95] tracking-tight text-ink sm:text-4xl lg:text-5xl">
@@ -36,7 +36,7 @@ export const AICoach = () => (
         </ul>
       </div>
 
-      <div className="rounded-xl bg-ink p-8 text-white">
+      <div className="rounded-xl bg-ink p-6 text-white sm:p-8">
         <p className="eyebrow text-brand-green">What it reads</p>
         <h3 className="mt-3 font-heading text-2xl font-bold uppercase tracking-wide">
           Your plan and your logs

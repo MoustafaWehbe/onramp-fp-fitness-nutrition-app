@@ -67,7 +67,7 @@ export const Onboarding = () => {
   }
 
   if (profileLoading) {
-    return <p className="p-6 text-muted-foreground">Loading your info...</p>;
+    return <p className="text-muted-foreground">Loading your info...</p>;
   }
 
   return (

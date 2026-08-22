@@ -10,7 +10,9 @@ import { useCoachProfile } from "../../hooks/useCoachProfile";
 import { apiErrorMessage } from "../../lib/api-error";
 import type { Gender } from "../../lib/api-types";
 
-const field = "mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm";
+// 16px below `sm` stops iOS Safari zooming the page in on focus.
+const field =
+  "mt-1 w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2 text-base sm:text-sm";
 
 /** Stored as arrays; edited as one comma-separated line. */
 const toList = (value: string) =>
@@ -202,7 +204,7 @@ export const CoachProfileCard = () => {
             <button
               type="submit"
               disabled={isSaving}
-              className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              className="w-full rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50 sm:w-auto sm:py-2"
             >
               {isSaving ? "Saving…" : "Save profile"}
             </button>

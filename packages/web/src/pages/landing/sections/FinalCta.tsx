@@ -3,8 +3,8 @@ import { ArrowRight } from "lucide-react";
 import { ROUTES } from "../../../constants/routes";
 
 export const FinalCta = () => (
-  <section className="bg-brand-green py-20 text-[#0c2410] sm:py-24">
-    <div className="mx-auto flex w-full max-w-3xl flex-col items-center px-6 text-center">
+  <section className="bg-brand-green py-16 text-[#0c2410] sm:py-20 lg:py-24">
+    <div className="mx-auto flex w-full max-w-3xl flex-col items-center px-5 text-center sm:px-6">
       <h2 className="font-sans text-3xl font-black uppercase leading-[0.95] tracking-tight sm:text-4xl lg:text-5xl">
         Your plan is waiting
       </h2>

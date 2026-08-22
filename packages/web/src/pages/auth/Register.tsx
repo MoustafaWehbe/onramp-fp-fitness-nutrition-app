@@ -53,7 +53,7 @@ export const Register = () => {
   return (
     <div>
       <p className="eyebrow text-primary">Start free</p>
-      <h1 className="mt-3 font-display text-5xl uppercase leading-none tracking-tight">
+      <h1 className="mt-3 font-display text-4xl uppercase leading-none tracking-tight sm:text-5xl">
         Create account
       </h1>
       <p className="mt-3 text-sm text-muted-foreground">

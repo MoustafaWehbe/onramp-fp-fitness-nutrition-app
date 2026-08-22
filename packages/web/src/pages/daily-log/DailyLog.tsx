@@ -382,7 +382,7 @@ export function DailyLog() {
   const loggedMeals   = followedMeals + modifiedMeals + skippedMeals;
   const logProgress   = totalMeals > 0 ? Math.round((loggedMeals / totalMeals) * 100) : 0;
 
-  if (programLoading) return <p className="p-6 text-muted-foreground">Loading...</p>;
+  if (programLoading) return <p className="text-muted-foreground">Loading...</p>;
 
   if (programError || !program) {
     return (

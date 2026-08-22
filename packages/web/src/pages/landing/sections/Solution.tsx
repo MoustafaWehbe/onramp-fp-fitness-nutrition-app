@@ -1,8 +1,8 @@
 import { SOLUTION_FEATURES } from "../landing.data";
 
 export const Solution = () => (
-  <section className="bg-background py-24 sm:py-28">
-    <div className="mx-auto w-full max-w-7xl px-6">
+  <section className="bg-background py-16 sm:py-24 lg:py-28">
+    <div className="mx-auto w-full max-w-7xl px-5 sm:px-6">
       <div className="max-w-2xl">
         <p className="eyebrow text-muted-foreground">Everything in one place</p>
         <h2 className="mt-3 font-sans text-3xl font-black uppercase leading-[0.95] tracking-tight text-ink sm:text-4xl lg:text-5xl">
@@ -15,11 +15,11 @@ export const Solution = () => (
         </p>
       </div>
 
-      <div className="mt-14 grid gap-6 sm:grid-cols-2">
+      <div className="mt-10 grid gap-6 sm:mt-14 sm:grid-cols-2">
         {SOLUTION_FEATURES.map((feature) => (
           <div
             key={feature.title}
-            className="group rounded-xl border border-border bg-card p-8 transition-colors hover:border-brand-green"
+            className="group rounded-xl border border-border bg-card p-6 transition-colors hover:border-brand-green sm:p-8"
           >
             <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-ink text-brand-green transition-colors group-hover:bg-brand-green group-hover:text-[#0c2410]">
               <feature.icon className="h-6 w-6" aria-hidden />
