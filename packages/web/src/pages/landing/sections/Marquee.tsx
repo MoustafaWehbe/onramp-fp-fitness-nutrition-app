@@ -3,7 +3,7 @@ import { MARQUEE_ITEMS } from "../landing.data";
 
 export const Marquee = () => (
   <section className="bg-brand-green py-5 text-[#0c2410]">
-    <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-2 px-6 font-heading text-sm font-semibold uppercase tracking-wide">
+    <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-2 px-5 font-heading text-sm font-semibold uppercase tracking-wide sm:px-6">
       {MARQUEE_ITEMS.map((item, i) => (
         <Fragment key={item}>
           {i > 0 && (

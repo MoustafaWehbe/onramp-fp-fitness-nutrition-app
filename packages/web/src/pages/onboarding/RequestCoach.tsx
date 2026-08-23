@@ -31,7 +31,7 @@ export function RequestCoach() {
   }
 
   if (requestLoading || coachesLoading) {
-    return <p className="p-6 text-muted-foreground">Loading...</p>;
+    return <p className="text-muted-foreground">Loading...</p>;
   }
 
   if (request && request.status !== "rejected") {

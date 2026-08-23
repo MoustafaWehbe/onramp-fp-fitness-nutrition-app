@@ -4,9 +4,9 @@ import { HOW_STEPS } from "../landing.data";
 export const HowItWorks = () => (
   <section
     id={LANDING_SECTIONS.how.replace("#", "")}
-    className="border-t border-border bg-secondary py-24 sm:py-28"
+    className="border-t border-border bg-secondary py-16 sm:py-24 lg:py-28"
   >
-    <div className="mx-auto w-full max-w-7xl px-6">
+    <div className="mx-auto w-full max-w-7xl px-5 sm:px-6">
       <div className="max-w-2xl">
         <p className="eyebrow text-muted-foreground">How it works</p>
         <h2 className="mt-3 font-sans text-3xl font-black uppercase leading-[0.95] tracking-tight text-ink sm:text-4xl lg:text-5xl">
@@ -15,11 +15,11 @@ export const HowItWorks = () => (
         </h2>
       </div>
 
-      <ol className="mt-14 grid gap-6 md:grid-cols-3">
+      <ol className="mt-10 grid gap-6 sm:mt-14 md:grid-cols-3">
         {HOW_STEPS.map((step, i) => (
           <li
             key={step.title}
-            className="group rounded-xl border border-border bg-card p-8 transition-colors hover:border-brand-green"
+            className="group rounded-xl border border-border bg-card p-6 transition-colors hover:border-brand-green sm:p-8"
           >
             <div className="flex items-center justify-between">
               <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-ink text-brand-green transition-colors group-hover:bg-brand-green group-hover:text-[#0c2410]">

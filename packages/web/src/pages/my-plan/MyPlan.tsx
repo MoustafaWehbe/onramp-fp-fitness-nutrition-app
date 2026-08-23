@@ -239,9 +239,9 @@ export function MyPlan() {
   // Fetch logs for the selected day (for the dot indicators on DayNavButton)
   const { workoutLog } = useDayLogs(activeDayPlanSummary?.id ?? null);
 
-  if (programLoading) return <p className="p-6 text-muted-foreground">Loading program...</p>;
+  if (programLoading) return <p className="text-muted-foreground">Loading program...</p>;
 
-  if (error) return <p className="p-6 text-destructive">Failed to load program.</p>;
+  if (error) return <p className="text-destructive">Failed to load program.</p>;
 
   if (!program) {
     return (

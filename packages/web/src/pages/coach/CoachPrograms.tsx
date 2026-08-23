@@ -6,6 +6,10 @@ import { useCoachPrograms } from "../../hooks/useCoachPrograms";
 import { apiErrorMessage } from "../../lib/api-error";
 import type { ApiCoachRequestWithClient } from "../../lib/api-types";
 
+// 16px below `sm` stops iOS Safari zooming the page in on focus.
+const field =
+  "mt-1 w-full min-w-0 rounded-xl border border-slate-200 px-3 py-2 text-base sm:text-sm";
+
 const statusBadge = (status: "draft" | "published") =>
   status === "published"
     ? "bg-emerald-100 text-emerald-700"
@@ -73,13 +77,13 @@ export const CoachPrograms = () => {
     }
   };
 
-  if (isLoading) return <p className="p-6 text-slate-500">Loading…</p>;
-  if (error) return <p className="p-6 text-red-600">{error}</p>;
+  if (isLoading) return <p className="text-slate-500">Loading…</p>;
+  if (error) return <p className="text-red-600">{error}</p>;
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-8">
       <header>
-        <h1 className="font-heading text-2xl font-bold text-slate-950">
+        <h1 className="font-heading text-xl font-bold text-slate-950 sm:text-2xl">
           Client programs
         </h1>
         <p className="mt-1 text-sm text-slate-500">
@@ -88,7 +92,7 @@ export const CoachPrograms = () => {
         </p>
       </header>
 
-      <section className="rounded-3xl border border-slate-200 bg-white/80 p-5">
+      <section className="rounded-3xl border border-slate-200 bg-white/80 p-4 sm:p-5">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-950">
           <Plus className="h-4 w-4" />
           New program
@@ -107,7 +111,7 @@ export const CoachPrograms = () => {
                 required
                 value={effectiveRequestId}
                 onChange={(e) => setSelectedRequestId(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                className={field}
               >
                 <option value="">Select a client…</option>
                 {clientsWithoutProgram.map((request) => (
@@ -126,7 +130,7 @@ export const CoachPrograms = () => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="12-week strength base"
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                className={field}
               />
             </label>
 
@@ -138,7 +142,7 @@ export const CoachPrograms = () => {
                 value={goal}
                 onChange={(e) => setGoal(e.target.value)}
                 placeholder="Fat loss"
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                className={field}
               />
             </label>
 
@@ -147,7 +151,7 @@ export const CoachPrograms = () => {
               <select
                 value={level}
                 onChange={(e) => setLevel(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                className={field}
               >
                 <option>Beginner</option>
                 <option>Intermediate</option>
@@ -164,7 +168,7 @@ export const CoachPrograms = () => {
                 max={20000}
                 value={calories}
                 onChange={(e) => setCalories(Number(e.target.value))}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                className={field}
               />
             </label>
 
@@ -176,7 +180,7 @@ export const CoachPrograms = () => {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                className={field}
               />
             </label>
 
@@ -188,7 +192,7 @@ export const CoachPrograms = () => {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                className="w-full rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50 sm:w-auto sm:py-2"
               >
                 {isSaving ? "Creating…" : "Create draft"}
               </button>

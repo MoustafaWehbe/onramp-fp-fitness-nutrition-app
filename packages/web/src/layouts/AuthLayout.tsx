@@ -6,8 +6,11 @@ export const AuthLayout = () => (
   <div className="grid min-h-screen font-sans lg:grid-cols-2">
     <AuthBrandPanel />
 
-    <main className="flex flex-col justify-center bg-background px-6 py-12 sm:px-12">
-      <Link to={ROUTES.landing} className="mb-12 flex items-center gap-2 lg:hidden">
+    <main className="flex flex-col justify-center bg-background px-5 py-10 sm:px-12 sm:py-12">
+      <Link
+        to={ROUTES.landing}
+        className="mb-8 flex items-center gap-2 sm:mb-12 lg:hidden"
+      >
         <img
           src="/images/logo.png"
           alt=""
